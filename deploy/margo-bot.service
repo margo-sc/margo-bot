@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram bot @margo_sale_bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=margo
+WorkingDirectory=/opt/margo-bot
+ExecStart=/opt/margo-bot/.venv/bin/python -m bot.main
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
