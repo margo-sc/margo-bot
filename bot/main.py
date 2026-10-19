@@ -58,7 +58,8 @@ async def main() -> None:
     sched = asyncio.create_task(app.scheduler(stop))
     # бот работает через long polling: удаляем вебхук, оставшийся от Botmother
     await bot.delete_webhook(drop_pending_updates=False)
-    polling = asyncio.create_task(dp.start_polling(bot, handle_signals=False))
+    polling = asyncio.create_task(dp.start_polling(
+        bot, handle_signals=False, allowed_updates=dp.resolve_used_update_types()))
     await stop.wait()
     await dp.stop_polling()
     await asyncio.gather(sched, polling, return_exceptions=True)

@@ -128,6 +128,14 @@ def validate(data: dict) -> list[str]:
         d = p.get("delivery", {}) or {}
         if d.get("anketa") and d["anketa"] not in anketas:
             problems.append(f"products.{key}: нет анкеты '{d['anketa']}'")
+        acc = d.get("access")
+        if acc is not None:
+            if not isinstance(acc, dict) or not re.fullmatch(r"[a-z0-9_]{1,40}", str(acc.get("group", ""))):
+                problems.append(f"products.{key}.delivery.access: нужен group — латиница, цифры и _")
+            elif acc.get("days") is not None and not (isinstance(acc["days"], int) and acc["days"] > 0):
+                problems.append(f"products.{key}.delivery.access.days: нужно целое число дней")
+            elif acc.get("link") and not str(acc["link"]).startswith("https://t.me/"):
+                problems.append(f"products.{key}.delivery.access.link: ссылка должна начинаться с https://t.me/")
         ac = p.get("after_chain")
         if ac and ac not in chains:
             problems.append(f"products.{key}: нет цепочки '{ac}'")

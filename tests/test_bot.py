@@ -11,9 +11,12 @@ import json
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.base import BaseSession
-from aiogram.methods import (AnswerCallbackQuery, CopyMessage, EditMessageReplyMarkup, EditMessageText,
-                             SendDocument, SendMessage, TelegramMethod)
-from aiogram.types import Chat, Document, Message, MessageId, Update, User
+from aiogram.methods import (AnswerCallbackQuery, ApproveChatJoinRequest, BanChatMember, CopyMessage,
+                             CreateChatInviteLink, DeclineChatJoinRequest, EditMessageReplyMarkup,
+                             EditMessageText, GetChatMember, GetMe, SendDocument, SendMessage, TelegramMethod,
+                             UnbanChatMember)
+from aiogram.types import (Chat, ChatInviteLink, ChatMemberAdministrator, Document, Message, MessageId, Update,
+                           User)
 from aiohttp.test_utils import TestClient, TestServer
 
 from bot import robokassa
@@ -27,6 +30,10 @@ from bot.web import build_web
 ROOT = Path(__file__).resolve().parent.parent
 ADMIN = 111
 CLIENT = 222
+FRIEND = 333
+GROUP_ZAL = -100500
+CHANNEL_KNIGA = -100700
+BOT_USER = User(id=123, is_bot=True, first_name="Марго бот", username="margo_sale_bot")
 
 
 # ------------------------------------------------------------------ фейковый Telegram
@@ -35,6 +42,7 @@ class FakeSession(BaseSession):
         super().__init__()
         self.calls: list[TelegramMethod] = []
         self._mid = 1000
+        self.rights = {"can_invite_users": True, "can_restrict_members": True}
 
     async def make_request(self, bot, method, timeout=None):
         self.calls.append(method)
@@ -51,6 +59,16 @@ class FakeSession(BaseSession):
             return True
         if isinstance(method, (EditMessageReplyMarkup, EditMessageText)):
             return True
+        if isinstance(method, CreateChatInviteLink):
+            return ChatInviteLink(invite_link=f"https://t.me/+one{self._mid}", creator=BOT_USER,
+                                  creates_join_request=bool(method.creates_join_request), is_primary=False,
+                                  is_revoked=False, name=method.name)
+        if isinstance(method, GetMe):
+            return BOT_USER
+        if isinstance(method, GetChatMember):
+            fields = {n: False for n, f in ChatMemberAdministrator.model_fields.items() if f.annotation is bool}
+            fields.update(self.rights)
+            return ChatMemberAdministrator(user=BOT_USER, status="administrator", **fields)
         return True
 
     async def close(self):
@@ -173,7 +191,7 @@ async def test_plain_start_shows_start_screen(env):
 
 async def test_full_payment_flow(env, tmp_path):
     app, s, dp, bot = env
-    (tmp_path / "files" / "kniga.pdf").write_bytes(b"%PDF-1.4 test")
+    await app.db.bind_group("kniga", CHANNEL_KNIGA, "Я снова сорвалась | Книга Марго")
     await dp.feed_update(bot, upd_message(CLIENT, "/start site_kniga"))
     await dp.feed_update(bot, upd_callback(CLIENT, "a:pay:kniga"))
     url = callbacks(s.last_markup(CLIENT))[0]
@@ -196,13 +214,14 @@ async def test_full_payment_flow(env, tmp_path):
         sign = hashlib.md5(f"990.000000:{inv}:p2".encode()).hexdigest()
         ok = await client.post("/robokassa/result", data={"OutSum": "990.000000", "InvId": inv, "SignatureValue": sign})
         assert await ok.text() == f"OK{inv}"
-        docs = [c for c in s.calls if isinstance(c, SendDocument) and c.chat_id == CLIENT]
-        assert len(docs) == 1 and docs[0].protect_content is True
-        assert any("Оплата" in t and "990" in t for t in s.texts_to(ADMIN))
+        links = [c for c in s.calls if isinstance(c, CreateChatInviteLink)]
+        assert len(links) == 1 and links[0].chat_id == CHANNEL_KNIGA and links[0].creates_join_request
+        assert any(u.startswith("https://t.me/+one") for u in callbacks(s.last_markup(CLIENT)))
+        assert any("Оплата" in t and "990" in t and "выдано автоматически" in t for t in s.texts_to(ADMIN))
         # повторное уведомление не выдаёт продукт второй раз
         again = await client.post("/robokassa/result", data={"OutSum": "990.000000", "InvId": inv, "SignatureValue": sign})
         assert await again.text() == f"OK{inv}"
-        assert len([c for c in s.calls if isinstance(c, SendDocument) and c.chat_id == CLIENT]) == 1
+        assert len([c for c in s.calls if isinstance(c, CreateChatInviteLink)]) == 1
         paid_page = await (await client.get(f"/pay/{token}")).text()
         assert "уже оплачен" in paid_page
 
@@ -213,6 +232,7 @@ async def test_full_payment_flow(env, tmp_path):
 
 async def test_missing_files_fall_back_to_manual(env):
     app, s, dp, bot = env
+    app.content.data["products"]["uchebnik"]["delivery"] = {"text": "Спасибо", "files": ["uchebnik.pdf"]}
     await app.db.touch_user(CLIENT, None, "Аня", "site")
     order = await app.db.create_order(CLIENT, "uchebnik", 4990)
     await app.db.mark_paid(order["id"])
@@ -327,6 +347,7 @@ async def test_admin_uploads_file_via_telegram_then_delivery_uses_it(env):
     user = User(id=ADMIN, is_bot=False, first_name="Марго")
     msg = Message(message_id=_uid[0], date=dt.datetime.now(), chat=Chat(id=ADMIN, type="private"), from_user=user,
                   document=Document(file_id="BOOKFID", file_unique_id="b"), caption="/file uchebnik.pdf")
+    app.content.data["products"]["uchebnik"]["delivery"] = {"text": "Спасибо", "files": ["uchebnik.pdf"]}
     await dp.feed_update(bot, Update(update_id=_uid[0], message=msg))
     assert await app.db.file_id("uchebnik.pdf") == "BOOKFID"
     await dp.feed_update(bot, upd_message(ADMIN, "/files"))
@@ -356,3 +377,127 @@ async def test_claim_makes_owner(tmp_path):
     os.environ["DATA_DIR"] = str(tmp_path); os.environ.pop("ADMIN_IDS", None)
     assert CLIENT in load_config(tmp_path / "none.env").admin_ids
     await db.close()
+
+
+# ------------------------------------------------------------------ закрытые группы
+def upd_join(uid: int, chat_id: int) -> Update:
+    _uid[0] += 1
+    return Update(update_id=_uid[0], chat_join_request={
+        "chat": Chat(id=chat_id, type="supergroup", title="Группа"), "from": User(id=uid, is_bot=False, first_name="Х"),
+        "user_chat_id": uid, "date": dt.datetime.now()})
+
+
+async def pay(app, uid, key, amount):
+    await app.db.touch_user(uid, None, "Аня", "site")
+    order = await app.db.create_order(uid, key, amount)
+    await app.db.mark_paid(order["id"])
+    await app.on_paid(await app.db.order_by_id(order["id"]))
+
+
+async def test_bot_added_to_group_asks_product_and_binds(env):
+    app, s, dp, bot = env
+    _uid[0] += 1
+    chat = Chat(id=GROUP_ZAL, type="supergroup", title="Программа тренировок для зала")
+    upd = Update(update_id=_uid[0], my_chat_member={
+        "chat": chat, "from": User(id=ADMIN, is_bot=False, first_name="Марго"), "date": dt.datetime.now(),
+        "old_chat_member": {"status": "left", "user": BOT_USER},
+        "new_chat_member": {**{n: False for n, f in ChatMemberAdministrator.model_fields.items()
+                               if f.annotation is bool},
+                            "status": "administrator", "user": BOT_USER,
+                            "can_invite_users": True, "can_restrict_members": True}})
+    await dp.feed_update(bot, upd)
+    assert "Для какого продукта" in s.texts_to(ADMIN)[-1]
+    assert f"grp:zal:{GROUP_ZAL}" in callbacks(s.last_markup(ADMIN))
+    await dp.feed_update(bot, upd_callback(ADMIN, f"grp:zal:{GROUP_ZAL}"))
+    assert (await app.db.group("zal"))["chat_id"] == GROUP_ZAL
+    assert "привязана" in s.texts_to(ADMIN)[-1] and "Не хватает" not in s.texts_to(ADMIN)[-1]
+    # клиент не может привязывать группы
+    await dp.feed_update(bot, upd_callback(CLIENT, f"grp:dom:{GROUP_ZAL}"))
+    assert await app.db.group("dom") is None
+
+
+async def test_missing_ban_right_is_reported(env):
+    app, s, dp, bot = env
+    s.rights = {"can_invite_users": True, "can_restrict_members": False}
+    report = await app.bind_group("zal", GROUP_ZAL, "Зал")
+    assert "Блокировка" in report
+    assert "Блокировка" not in await app.bind_group("uchebnik", -100900, "Учебник")  # навсегда — блокировка не нужна
+
+
+async def test_paid_zal_gets_personal_link_and_only_buyer_is_approved(env):
+    app, s, dp, bot = env
+    await app.db.bind_group("zal", GROUP_ZAL, "Зал")
+    await pay(app, CLIENT, "zal", 5000)
+    link = [c for c in s.calls if isinstance(c, CreateChatInviteLink)][-1]
+    assert link.chat_id == GROUP_ZAL and link.creates_join_request
+    assert any("Доступ открыт до" in t for t in s.texts_to(CLIENT))
+    await dp.feed_update(bot, upd_join(CLIENT, GROUP_ZAL))
+    assert any(isinstance(c, ApproveChatJoinRequest) and c.user_id == CLIENT for c in s.calls)
+    await dp.feed_update(bot, upd_join(FRIEND, GROUP_ZAL))   # подруга по пересланной ссылке
+    assert any(isinstance(c, DeclineChatJoinRequest) and c.user_id == FRIEND for c in s.calls)
+    assert not any(isinstance(c, ApproveChatJoinRequest) and c.user_id == FRIEND for c in s.calls)
+    assert any("после покупки" in t for t in s.texts_to(FRIEND))
+
+
+async def test_unbound_group_uses_fallback_link_and_alerts(env):
+    app, s, dp, bot = env
+    await pay(app, CLIENT, "dom", 5000)
+    assert "https://t.me/+vifC6bi2fLI0ZjEy" in callbacks(s.last_markup(CLIENT))
+    assert any("не привязана" in t for t in s.texts_to(ADMIN))
+
+
+async def test_access_reminder_expiry_and_renewal(env):
+    app, s, dp, bot = env
+    await app.db.bind_group("zal", GROUP_ZAL, "Зал")
+    await pay(app, CLIENT, "zal", 5000)
+    row = await (await app.db.conn.execute("SELECT * FROM access WHERE user_id=?", (CLIENT,))).fetchone()
+    assert 59 * 86400 < row["expires_at"] - row["granted_at"] <= 60 * 86400
+    # за 2 дня до конца — напоминание с кнопкой продления, один раз
+    await app.db.set_access(CLIENT, "zal", expires_at=int(dt.datetime.now().timestamp()) + 2 * 86400)
+    await app.access_tick(); await app.access_tick()
+    assert sum("закончится" in t for t in s.texts_to(CLIENT)) == 1
+    assert "a:pay:zal" in callbacks(s.last_markup(CLIENT))
+    # продление до окончания прибавляет 60 дней к текущему сроку
+    before = (await (await app.db.conn.execute("SELECT expires_at FROM access WHERE user_id=?", (CLIENT,))).fetchone())[0]
+    await pay(app, CLIENT, "zal", 5000)
+    after = (await (await app.db.conn.execute("SELECT expires_at, reminded FROM access WHERE user_id=?", (CLIENT,))).fetchone())
+    assert after[0] == before + 60 * 86400 and after[1] == 0
+    # срок вышел — бот убирает из группы (бан + разбан, чтобы можно было вернуться после оплаты)
+    await app.db.set_access(CLIENT, "zal", expires_at=1)
+    await app.access_tick()
+    assert any(isinstance(c, BanChatMember) and c.user_id == CLIENT and c.chat_id == GROUP_ZAL for c in s.calls)
+    assert any(isinstance(c, UnbanChatMember) and c.only_if_banned for c in s.calls)
+    assert any("закончился" in t for t in s.texts_to(CLIENT))
+    await dp.feed_update(bot, upd_join(CLIENT, GROUP_ZAL))
+    assert any(isinstance(c, DeclineChatJoinRequest) and c.user_id == CLIENT for c in s.calls)
+
+
+async def test_forever_access_never_expires(env):
+    app, s, dp, bot = env
+    await app.db.bind_group("uchebnik", -100900, "Учебник")
+    await pay(app, CLIENT, "uchebnik", 4990)
+    row = await (await app.db.conn.execute("SELECT expires_at FROM access WHERE user_id=?", (CLIENT,))).fetchone()
+    assert row[0] is None
+    assert not any("Доступ открыт до" in t for t in s.texts_to(CLIENT))
+    await app.access_tick()
+    assert not any(isinstance(c, BanChatMember) for c in s.calls)
+
+
+async def test_admin_group_and_access_commands(env):
+    app, s, dp, bot = env
+    await app.db.bind_group("zal", GROUP_ZAL, "Программа для зала")
+    await pay(app, CLIENT, "zal", 5000)
+    await dp.feed_update(bot, upd_message(ADMIN, "/gruppy"))
+    txt = s.texts_to(ADMIN)[-1]
+    assert "✅" in txt and "Программа для зала" in txt and "не привязана" in txt
+    await dp.feed_update(bot, upd_message(ADMIN, "/dostup zal"))
+    assert str(CLIENT) in s.texts_to(ADMIN)[-1]
+
+
+def test_new_prices_and_home_program():
+    c = Content(ROOT / "content.yaml")
+    assert c.products["individ"]["price"] == 7000
+    assert c.products["dom"]["delivery"]["access"]["days"] == 60
+    assert c.products["zal"]["delivery"]["access"]["days"] == 60
+    assert "days" not in c.products["uchebnik"]["delivery"]["access"]
+    assert "product:dom" in str(c.screens["catalog"]["buttons"])

@@ -7,7 +7,8 @@ import time
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandObject, CommandStart
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (CallbackQuery, ChatJoinRequest, ChatMemberUpdated, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 
 from .core import App
 
@@ -20,6 +21,8 @@ ADMIN_HELP = """<b>Команды для тебя</b>
 /chain <i>id</i> <i>цепочка</i> — запустить цепочку (например, after_konsult после встречи)
 /rassylka [<i>ярлык</i>] — ответь этой командой на сообщение, и бот разошлёт его всем (или только с ярлыком)
 /files — какие файлы продуктов загружены
+/gruppy — закрытые группы продуктов: привязаны ли и хватает ли прав у бота
+/dostup [<i>продукт</i>] — у кого сейчас открыт доступ и до какого числа
 Загрузить файл: отправь боту PDF с подписью <code>/file kniga.pdf</code>
 /reload — перечитать content.yaml после правок
 /id — узнать id чата
@@ -260,6 +263,104 @@ def build_router(app: App) -> Router:
             lines.append(f"{'✅' if ok else '❌'} <code>{html.escape(name)}</code> — {html.escape(owner)}")
         lines.append("\nЧтобы загрузить: отправь боту PDF с подписью <code>/file имя.pdf</code>")
         await m.answer("\n".join(lines), parse_mode="HTML")
+
+    # ---------------------------------------------------------------- закрытые группы продуктов
+    def group_buttons(chat_id: int) -> InlineKeyboardMarkup | None:
+        rows = []
+        for key, g in app.access_groups().items():
+            names = " + ".join(app.content.products[p].get("name", p) for p in g["products"])
+            rows.append([InlineKeyboardButton(text=names[:60], callback_data=f"grp:{key}:{chat_id}")])
+        rows.append([InlineKeyboardButton(text="Это не группа продукта", callback_data=f"grp:-:{chat_id}")])
+        return InlineKeyboardMarkup(inline_keyboard=rows)
+
+    @r.my_chat_member()
+    async def bot_status_changed(e: ChatMemberUpdated):
+        if e.chat.type == "private":
+            return
+        new = e.new_chat_member.status
+        title = html.escape(e.chat.title or str(e.chat.id))
+        if new == "administrator":
+            keys = await app.db.group_keys_for_chat(e.chat.id)
+            if keys:  # уже привязана — просто перепроверим права
+                for k in keys:
+                    await app.alert(await app.bind_group(k, e.chat.id, e.chat.title or str(e.chat.id)))
+                return
+            if not (e.from_user and app.is_admin(e.from_user.id)):
+                return  # спрашиваем только тогда, когда бота добавила сама Маргарита
+            await app.alert(f"Меня сделали администратором в «{title}». Для какого продукта эта группа? 👇",
+                            markup=group_buttons(e.chat.id))
+        elif new in ("left", "kicked") and await app.db.group_keys_for_chat(e.chat.id):
+            await app.alert(f"⚠️ Меня убрали из «{title}» — выдавать доступ туда я больше не смогу. "
+                            f"Верни меня администратором, если это случайно.")
+
+    @r.callback_query(F.data.startswith("grp:"), admin)
+    async def group_pick(c: CallbackQuery):
+        await c.answer()
+        _, key, chat = c.data.split(":", 2)
+        try:
+            await c.message.edit_reply_markup(reply_markup=None)
+        except Exception:  # noqa: BLE001
+            pass
+        if key == "-":
+            return await c.message.answer("Хорошо, эту группу не трогаю.")
+        try:
+            title = (await app.bot.get_chat(int(chat))).title or chat
+        except Exception:  # noqa: BLE001
+            title = chat
+        await c.message.answer(await app.bind_group(key, int(chat), title), parse_mode="HTML")
+
+    async def bind_here(m: Message, command: CommandObject):
+        key = (command.args or "").strip()
+        report = await app.bind_group(key, m.chat.id, m.chat.title or str(m.chat.id))
+        await app.alert(report)
+        try:
+            await m.delete()
+        except Exception:  # noqa: BLE001
+            pass
+
+    @r.message(Command("bind"), F.chat.type.in_({"group", "supergroup"}), admin)
+    async def bind_in_group(m: Message, command: CommandObject):
+        await bind_here(m, command)
+
+    @r.channel_post(Command("bind"))
+    async def bind_in_channel(m: Message, command: CommandObject):
+        await bind_here(m, command)  # писать в канал могут только его администраторы
+
+    @r.message(Command("gruppy", "groups"), admin)
+    async def groups_status(m: Message):
+        lines = ["<b>Закрытые группы продуктов</b>"]
+        for key, g in app.access_groups().items():
+            names = ", ".join(app.content.products[p].get("name", p) for p in g["products"])
+            row = await app.db.group(key)
+            if not row:
+                lines.append(f"\n❌ <b>{html.escape(names)}</b> — группа не привязана. "
+                             f"Убери бота из администраторов группы и добавь снова — я спрошу, что это за группа.")
+                continue
+            missing = await app.bot_rights(row["chat_id"], g["timed"])
+            mark = "✅" if not missing else "⚠️"
+            lines.append(f"\n{mark} <b>{html.escape(names)}</b> → «{html.escape(row['title'] or '')}»")
+            if missing:
+                lines.append("Не хватает прав: " + "; ".join(html.escape(x) for x in missing))
+        await m.answer("\n".join(lines), parse_mode="HTML")
+
+    @r.message(Command("dostup"), admin)
+    async def access_status(m: Message, command: CommandObject):
+        key = (command.args or "").strip() or None
+        rows = await app.db.access_list(key)
+        if not rows:
+            return await m.answer("Активных доступов нет.")
+        names = {k: v.get("name", k) for k, v in app.content.products.items()}
+        lines = [f"<b>Открытые доступы: {len(rows)}</b>"]
+        for a in rows[:100]:
+            u = await app.db.get_user(a["user_id"])
+            who = html.escape((u["first_name"] or "") if u else "")
+            lines.append(f"{html.escape(names.get(a['product'], a['product']))}: {who} "
+                         f"<code>{a['user_id']}</code> — до {app.fmt_date(a['expires_at'])}")
+        await m.answer("\n".join(lines), parse_mode="HTML")
+
+    @r.chat_join_request()
+    async def join_request(req: ChatJoinRequest):
+        await app.on_join_request(req)
 
     # ---------------------------------------------------------------- ответ клиенту через reply
     @r.message(F.reply_to_message, admin)

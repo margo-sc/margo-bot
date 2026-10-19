@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 import html
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError, TelegramRetryAfter
-from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import ChatJoinRequest, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 
 from .config import Config
 from .content import Content, parse_delay, render
@@ -216,14 +218,156 @@ class App:
         if links:
             await self.send(uid, "👇", self.keyboard([[l[0], f"url:{l[1]}"] for l in links]))
             sent_any = True
+        if d.get("access") and await self.grant_access(uid, key):
+            sent_any = True
         if d.get("anketa"):
             await self.ask_consent(uid, d["anketa"])
             return True
-        expected = bool(d.get("files") or links)
+        expected = bool(d.get("files") or links or d.get("access"))
         if expected and not sent_any:
             # файлы ещё не загружены на сервер — клиент получит доступ лично
             await self.send(uid, self.content.sys("delivery_manual") or "Доступ пришлю лично 🤍")
         return sent_any
+
+    # ------------------------------------------------------------------ закрытые группы
+    def access_groups(self) -> dict[str, dict]:
+        """{ключ группы: {'products': [...], 'timed': bool}} — из delivery.access в content.yaml."""
+        out: dict[str, dict] = {}
+        for key, p in self.content.products.items():
+            acc = (p.get("delivery") or {}).get("access") or {}
+            g = acc.get("group")
+            if not g:
+                continue
+            item = out.setdefault(g, {"products": [], "timed": False})
+            item["products"].append(key)
+            item["timed"] = item["timed"] or bool(acc.get("days"))
+        return out
+
+    @staticmethod
+    def fmt_date(ts: int | None) -> str:
+        if not ts:
+            return "навсегда"
+        msk = dt.timezone(dt.timedelta(hours=3))
+        return dt.datetime.fromtimestamp(ts, msk).strftime("%d.%m.%Y")
+
+    async def bot_rights(self, chat_id: int, need_ban: bool) -> list[str]:
+        """Проверяет права бота в чате. Возвращает список того, чего не хватает (пустой — всё хорошо)."""
+        try:
+            me = await self.bot.get_me()
+            m = await self.bot.get_chat_member(chat_id, me.id)
+        except Exception as e:  # noqa: BLE001
+            return [f"бот не видит чат ({e})"]
+        if getattr(m, "status", "") not in ("administrator", "creator"):
+            return ["бот не администратор"]
+        missing = []
+        if not getattr(m, "can_invite_users", False):
+            missing.append("«Пригласительные ссылки» (Добавление участников)")
+        if need_ban and not getattr(m, "can_restrict_members", False):
+            missing.append("«Блокировка пользователей» — нужна, чтобы убирать по окончании доступа")
+        return missing
+
+    async def bind_group(self, key: str, chat_id: int, title: str) -> str:
+        """Привязывает чат к ключу группы и возвращает отчёт для Маргариты."""
+        groups = self.access_groups()
+        if key not in groups:
+            return (f"Нет группы с ключом <code>{html.escape(key)}</code>. "
+                    f"Ключи: {', '.join(groups) or '—'}")
+        await self.db.bind_group(key, chat_id, title)
+        names = ", ".join(self.content.products[p].get("name", p) for p in groups[key]["products"])
+        missing = await self.bot_rights(chat_id, groups[key]["timed"])
+        text = f"✅ «{html.escape(title)}» привязана к продукту: {html.escape(names)}"
+        if missing:
+            text += "\n\n⚠️ Не хватает прав бота: " + "; ".join(html.escape(x) for x in missing)
+        return text
+
+    async def grant_access(self, uid: int, key: str) -> bool:
+        """Открывает доступ к закрытой группе продукта и присылает персональную ссылку-заявку.
+        Ссылка работает только для покупательницы: заявку от любого другого человека бот отклонит."""
+        p = self.content.products.get(key, {})
+        acc = (p.get("delivery") or {}).get("access") or {}
+        grp, days = acc.get("group"), acc.get("days")
+        expires = await self.db.grant_access(uid, key, grp, days)
+        g = await self.db.group(grp)
+        button = acc.get("button") or "Войти в группу"
+        until = f"\n\nДоступ открыт до <b>{self.fmt_date(expires)}</b>." if expires else ""
+        if g:
+            try:
+                link = await self.bot.create_chat_invite_link(
+                    g["chat_id"], name=f"{key} {uid}"[:32], creates_join_request=True)
+                text = (self.content.sys("access_link") or
+                        "Нажми кнопку и отправь заявку — я одобрю её автоматически 🤍") + until
+                return await self.send(uid, text, self.keyboard([[button, f"url:{link.invite_link}"]]))
+            except Exception as e:  # noqa: BLE001
+                log.warning("invite link for %s failed: %s", grp, e)
+                problem = f"бот не смог создать ссылку ({html.escape(str(e))[:200]})"
+        else:
+            problem = "группа ещё не привязана"
+        fallback = acc.get("link")
+        await self.alert(f"⚠️ Доступ к группе <b>{html.escape(str(grp))}</b>: {problem}. "
+                         + ("Клиентке выдана общая ссылка." if fallback else "<b>Выдай доступ вручную.</b>"),
+                         about_uid=uid)
+        if fallback:
+            text = (self.content.sys("access_link_plain") or "Вот вход в закрытую группу 👇") + until
+            return await self.send(uid, text, self.keyboard([[button, f"url:{fallback}"]]))
+        return False
+
+    async def on_join_request(self, req: ChatJoinRequest) -> None:
+        uid, chat_id = req.from_user.id, req.chat.id
+        groups = await self.db.group_keys_for_chat(chat_id)
+        if not groups:
+            return  # чат не наш — решает Маргарита
+        if await self.db.has_access(uid, groups):
+            try:
+                await self.bot.approve_chat_join_request(chat_id, uid)
+            except TelegramBadRequest as e:  # уже в группе или заявка устарела
+                log.info("approve %s in %s: %s", uid, chat_id, e)
+            return
+        try:
+            await self.bot.decline_chat_join_request(chat_id, uid)
+        except TelegramBadRequest as e:
+            log.info("decline %s in %s: %s", uid, chat_id, e)
+        products = [k for g in groups for k in self.access_groups().get(g, {}).get("products", [])]
+        kb = self.keyboard([["Посмотреть продукт", f"product:{products[0]}"]]) if products else None
+        await self.send(req.user_chat_id or uid,
+                        self.content.sys("access_denied") or
+                        "Вход в эту группу открывается после покупки 🤍", kb)
+
+    async def access_tick(self) -> None:
+        """Напоминания за 3 дня и закрытие доступа по окончании срока."""
+        for a in await self.db.access_to_remind(3 * 86400):
+            p = self.content.products.get(a["product"], {})
+            v = {**await self._user_vars(a["user_id"]), **self.content.product_vars(a["product"]),
+                 "date": self.fmt_date(a["expires_at"])}
+            text = render(self.content.sys("access_reminder") or
+                          "Доступ к «{name}» закончится {date}.", **v)
+            await self.send(a["user_id"], text, self.keyboard([["Продлить доступ", f"pay:{a['product']}"]])
+                            if p.get("payable", True) else None)
+            await self.db.set_access(a["user_id"], a["product"], reminded=1)
+        for a in await self.db.access_expired():
+            uid, key = a["user_id"], a["product"]
+            g = await self.db.group(a["grp"])
+            removed = False
+            if g:
+                try:
+                    await self.bot.ban_chat_member(g["chat_id"], uid, until_date=int(time.time()) + 60)
+                    await self.bot.unban_chat_member(g["chat_id"], uid, only_if_banned=True)
+                    removed = True
+                except TelegramBadRequest as e:
+                    msg = str(e).lower()
+                    removed = "not found" in msg or "participant" in msg  # уже вышла сама
+                    if not removed:
+                        log.warning("remove %s from %s failed: %s", uid, a["grp"], e)
+                except Exception as e:  # noqa: BLE001
+                    log.warning("remove %s from %s failed: %s", uid, a["grp"], e)
+            await self.db.set_access(uid, key, status="expired")
+            v = {**await self._user_vars(uid), **self.content.product_vars(key)}
+            p = self.content.products.get(key, {})
+            await self.send(uid, render(self.content.sys("access_expired") or
+                                        "Доступ к «{name}» закончился.", **v),
+                            self.keyboard([["Продлить доступ", f"pay:{key}"]]) if p.get("payable", True) else None)
+            if not removed:
+                await self.alert(f"⚠️ Доступ к «{html.escape(p.get('name', key))}» закончился, но бот не смог "
+                                 f"убрать клиентку из группы — убери вручную.", about_uid=uid)
 
     # ------------------------------------------------------------------ гайды
     async def give_lead(self, uid: int, key: str) -> None:
@@ -331,6 +475,10 @@ class App:
                     await asyncio.sleep(0.05)
             except Exception as e:  # noqa: BLE001
                 log.exception("scheduler error: %s", e)
+            try:
+                await self.access_tick()
+            except Exception as e:  # noqa: BLE001
+                log.exception("access error: %s", e)
             try:
                 await asyncio.wait_for(stop.wait(), timeout=self.cfg.tick_seconds)
             except asyncio.TimeoutError:

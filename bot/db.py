@@ -45,6 +45,19 @@ CREATE TABLE IF NOT EXISTS relay (
 CREATE TABLE IF NOT EXISTS files (
     name TEXT PRIMARY KEY, file_id TEXT
 );
+-- закрытые группы/каналы продуктов: ключ из content.yaml (delivery.access.group) -> чат
+CREATE TABLE IF NOT EXISTS groups (
+    key TEXT PRIMARY KEY, chat_id INTEGER, title TEXT, bound_at INTEGER
+);
+-- доступ клиента к группе продукта; expires_at NULL — навсегда
+CREATE TABLE IF NOT EXISTS access (
+    user_id INTEGER, product TEXT, grp TEXT,
+    granted_at INTEGER, expires_at INTEGER,
+    status TEXT DEFAULT 'active',      -- active | expired
+    reminded INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, product)
+);
+CREATE INDEX IF NOT EXISTS access_due ON access(status, expires_at);
 """
 
 
@@ -242,3 +255,78 @@ class DB:
     async def save_file_id(self, name: str, file_id: str) -> None:
         await self.conn.execute("INSERT OR REPLACE INTO files VALUES(?,?)", (name, file_id))
         await self.conn.commit()
+
+    # ---------- закрытые группы продуктов ----------
+    async def bind_group(self, key: str, chat_id: int, title: str) -> None:
+        await self.conn.execute("INSERT OR REPLACE INTO groups VALUES(?,?,?,?)", (key, chat_id, title, now()))
+        await self.conn.commit()
+
+    async def group(self, key: str):
+        cur = await self.conn.execute("SELECT * FROM groups WHERE key=?", (key,))
+        return await cur.fetchone()
+
+    async def group_keys_for_chat(self, chat_id: int) -> list[str]:
+        cur = await self.conn.execute("SELECT key FROM groups WHERE chat_id=?", (chat_id,))
+        return [r[0] for r in await cur.fetchall()]
+
+    async def grant_access(self, uid: int, product: str, grp: str, days: int | None) -> int | None:
+        """Открывает или продлевает доступ. Возвращает срок окончания (unix) или None — навсегда.
+        Продление считается от текущего окончания, если доступ ещё действует."""
+        t = now()
+        cur = await self.conn.execute(
+            "SELECT expires_at, status FROM access WHERE user_id=? AND product=?", (uid, product))
+        row = await cur.fetchone()
+        if not days:
+            expires = None
+        else:
+            base = t
+            if row and row["status"] == "active" and row["expires_at"] and row["expires_at"] > t:
+                base = row["expires_at"]
+            elif row and row["status"] == "active" and row["expires_at"] is None:
+                base = None  # уже бессрочный — не урезаем
+            expires = None if base is None else base + int(days) * 86400
+        await self.conn.execute(
+            "INSERT INTO access(user_id, product, grp, granted_at, expires_at, status, reminded) "
+            "VALUES(?,?,?,?,?,'active',0) "
+            "ON CONFLICT(user_id, product) DO UPDATE SET grp=excluded.grp, granted_at=excluded.granted_at, "
+            "expires_at=excluded.expires_at, status='active', reminded=0",
+            (uid, product, grp, t, expires),
+        )
+        await self.conn.commit()
+        return expires
+
+    async def has_access(self, uid: int, groups: list[str]) -> bool:
+        if not groups:
+            return False
+        marks = ",".join("?" * len(groups))
+        cur = await self.conn.execute(
+            f"SELECT 1 FROM access WHERE user_id=? AND grp IN ({marks}) AND status='active' "
+            f"AND (expires_at IS NULL OR expires_at>?)",
+            (uid, *groups, now()),
+        )
+        return await cur.fetchone() is not None
+
+    async def access_to_remind(self, before: int):
+        cur = await self.conn.execute(
+            "SELECT * FROM access WHERE status='active' AND reminded=0 AND expires_at IS NOT NULL "
+            "AND expires_at<=? AND expires_at>?", (now() + before, now()))
+        return await cur.fetchall()
+
+    async def access_expired(self):
+        cur = await self.conn.execute(
+            "SELECT * FROM access WHERE status='active' AND expires_at IS NOT NULL AND expires_at<=?", (now(),))
+        return await cur.fetchall()
+
+    async def set_access(self, uid: int, product: str, **fields) -> None:
+        sets = ", ".join(f"{k}=?" for k in fields)
+        await self.conn.execute(f"UPDATE access SET {sets} WHERE user_id=? AND product=?",
+                                (*fields.values(), uid, product))
+        await self.conn.commit()
+
+    async def access_list(self, product: str | None = None):
+        if product:
+            cur = await self.conn.execute(
+                "SELECT * FROM access WHERE product=? AND status='active' ORDER BY expires_at", (product,))
+        else:
+            cur = await self.conn.execute("SELECT * FROM access WHERE status='active' ORDER BY product, expires_at")
+        return await cur.fetchall()
