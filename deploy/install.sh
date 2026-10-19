@@ -28,6 +28,8 @@ fi
 
 say "Скачиваю код бота"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER"
+# папка принадлежит пользователю бота, а обновляем мы от root — разрешаем git работать с ней
+git config --global --get-all safe.directory | grep -qx "$APP_DIR" || git config --global --add safe.directory "$APP_DIR"
 if [ -d "$APP_DIR/.git" ]; then
   git -C "$APP_DIR" pull --ff-only
 else
@@ -42,14 +44,15 @@ python3 -m venv "$APP_DIR/.venv"
 
 if [ ! -f "$APP_DIR/.env" ]; then
   say "Настройка (ввод не отображается для паролей)"
-  exec </dev/tty
-  read -rp  "Токен бота из @BotFather: " BOT_TOKEN
-  read -rp  "Поддомен для оплаты [pay.rita-fitt.ru]: " DOMAIN; DOMAIN=${DOMAIN:-pay.rita-fitt.ru}
-  read -rp  "Робокасса — идентификатор магазина: " RK_LOGIN
-  read -rsp "Робокасса — Пароль #1: " RK_P1; echo
-  read -rsp "Робокасса — Пароль #2: " RK_P2; echo
-  read -rp  "Тестовый режим Робокассы? (1 — да, 0 — боевой) [1]: " RK_TEST; RK_TEST=${RK_TEST:-1}
-  CLAIM_CODE=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
+  # вопросы читаем прямо с терминала: при запуске через «curl | bash» stdin занят самим скриптом
+  read -rp  "Токен бота из @BotFather: " BOT_TOKEN </dev/tty
+  read -rp  "Поддомен для оплаты [pay.rita-fitt.ru]: " DOMAIN </dev/tty; DOMAIN=${DOMAIN:-pay.rita-fitt.ru}
+  read -rp  "Робокасса — идентификатор магазина: " RK_LOGIN </dev/tty
+  read -rsp "Робокасса — Пароль #1: " RK_P1 </dev/tty; echo
+  read -rsp "Робокасса — Пароль #2: " RK_P2 </dev/tty; echo
+  read -rp  "Тестовый режим Робокассы? (1 — да, 0 — боевой) [1]: " RK_TEST </dev/tty; RK_TEST=${RK_TEST:-1}
+  # не через «tr </dev/urandom | head»: с pipefail такой конвейер падает (SIGPIPE) и скрипт молча завершается
+  CLAIM_CODE=$(python3 -c "import secrets,string; print(''.join(secrets.choice(string.ascii_lowercase+string.digits) for _ in range(8)))")
   export BOT_TOKEN DOMAIN RK_LOGIN RK_P1 RK_P2 RK_TEST CLAIM_CODE APP_DIR
   python3 - <<'PY'
 import os, re

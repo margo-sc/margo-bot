@@ -116,7 +116,9 @@ def validate(data: dict) -> list[str]:
             problems.append(f"{where}: нет гайда '{arg}'")
         elif kind == "anketa" and arg not in anketas:
             problems.append(f"{where}: нет анкеты '{arg}'")
-        elif kind not in ("screen", "product", "pay", "lead", "anketa", "url", "answer", "help"):
+        elif kind == "interest" and not (products.get(arg) or {}).get("interest"):
+            problems.append(f"{where}: у продукта '{arg}' нет блока interest")
+        elif kind not in ("screen", "product", "pay", "lead", "anketa", "url", "answer", "help", "interest"):
             problems.append(f"{where}: неизвестное действие '{action}'")
 
     for name, s in screens.items():
@@ -128,6 +130,12 @@ def validate(data: dict) -> list[str]:
         d = p.get("delivery", {}) or {}
         if d.get("anketa") and d["anketa"] not in anketas:
             problems.append(f"products.{key}: нет анкеты '{d['anketa']}'")
+        if p.get("contact"):
+            c = p["contact"]
+            if not (isinstance(c, (list, tuple)) and len(c) == 2):
+                problems.append(f"products.{key}.contact: нужно [\"Текст кнопки\", \"действие\"]")
+            else:
+                check_action(str(c[1]), f"products.{key}.contact")
         acc = d.get("access")
         if acc is not None:
             if not isinstance(acc, dict) or not re.fullmatch(r"[a-z0-9_]{1,40}", str(acc.get("group", ""))):

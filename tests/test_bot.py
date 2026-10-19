@@ -290,8 +290,13 @@ async def test_vedenie_anketa_with_followup(env):
     app, s, dp, bot = env
     await dp.feed_update(bot, upd_message(CLIENT, "/start site_vedenie"))
     await dp.feed_update(bot, upd_callback(CLIENT, "a:product:vedenie"))
-    assert "a:anketa:vedenie" in callbacks(s.last_markup(CLIENT))
-    await dp.feed_update(bot, upd_callback(CLIENT, "a:anketa:vedenie"))
+    assert "a:interest:vedenie" in callbacks(s.last_markup(CLIENT))
+    await dp.feed_update(bot, upd_callback(CLIENT, "a:interest:vedenie"))
+    assert callbacks(s.last_markup(CLIENT))[0].startswith("https://t.me/margo_tyutyunnik?text=")
+    note = s.texts_to(ADMIN)[-1]
+    assert "личное ведение" in note and f"/schet {CLIENT} vedenie" in note
+    assert await app.db.has_tag(CLIENT, "interest_vedenie")
+    await dp.feed_update(bot, upd_callback(CLIENT, "a:anketa:vedenie"))  # старая анкета всё ещё доступна по ссылке
     assert "Согласна" in str(s.last_markup(CLIENT))
     await dp.feed_update(bot, upd_callback(CLIENT, "consent:vedenie:1"))
     await dp.feed_update(bot, upd_message(CLIENT, "Минус 5 кг к лету"))
@@ -307,13 +312,18 @@ async def test_vedenie_anketa_with_followup(env):
     assert CLIENT not in app.anketa
 
 
-async def test_paid_konsult_starts_anketa(env):
+@pytest.mark.parametrize("key,price,title", [("konsult", 2500, "АНКЕТА ПЕРЕД"), ("individ", 7000, "ТЕСТ ДЛЯ")])
+async def test_paid_service_sends_owner_questionnaire_and_dm_button(env, key, price, title):
     app, s, dp, bot = env
     await app.db.touch_user(CLIENT, None, "Аня", "x")
-    order = await app.db.create_order(CLIENT, "konsult", 2500)
+    order = await app.db.create_order(CLIENT, key, price)
     await app.db.mark_paid(order["id"])
     await app.on_paid(await app.db.order_by_id(order["id"]))
-    assert "consent:konsult:1" in callbacks(s.last_markup(CLIENT))
+    msgs = [c for c in s.calls if isinstance(c, SendMessage) and c.chat_id == CLIENT]
+    assert len(msgs) == 1 and title in msgs[0].text and len(msgs[0].text) < 4096
+    assert callbacks(msgs[0].reply_markup) == ["https://t.me/margo_tyutyunnik"]
+    assert not any("consent:" in str(c.reply_markup) for c in msgs)  # бот больше не собирает анкету сам
+    assert any("ответы придут тебе в личку" in t for t in s.texts_to(ADMIN))
 
 
 async def test_client_message_relay_and_admin_reply(env):

@@ -131,6 +131,8 @@ class App:
             await self.give_lead(uid, arg)
         elif kind == "anketa":
             await self.ask_consent(uid, arg)
+        elif kind == "interest":
+            await self.register_interest(uid, arg)
         elif kind == "help":
             await self.send(uid, self.content.screens.get("help", {}).get("text", "Напиши вопрос сюда 🤍"))
             await self.db.add_tag(uid, "asked_help")
@@ -154,12 +156,28 @@ class App:
         await self.db.add_tag(uid, f"view_{key}")
         if p.get("payable", True):
             buttons = [["💳 Оплатить", f"pay:{key}"]]
+        elif p.get("contact"):
+            buttons = [list(p["contact"])]  # например, «Написать Марго» в личку
         else:
             buttons = [["Заполнить анкету", f"anketa:{key}"]]
         buttons += [[self.content.sys("help_button") or "Задать вопрос", "help"],
                     [self.content.sys("back_button") or "← В начало", "screen:start"]]
         v = {**await self._user_vars(uid), **self.content.product_vars(key)}
         await self.send(uid, render(p.get("card", ""), **v), self.keyboard(buttons, v))
+
+    async def register_interest(self, uid: int, key: str) -> None:
+        """«Хочу в ведение»: клиентке — кнопка в личку Маргарите, Маргарите — уведомление, кто это."""
+        p = self.content.products.get(key) or {}
+        it = p.get("interest") or {}
+        await self.db.add_tag(uid, f"interest_{key}")
+        kb = self.keyboard([[it.get("button", "Написать Марго"), f"url:{it['url']}"]]) if it.get("url") else None
+        await self.send(uid, render(it.get("text", "Напиши мне в личные сообщения 🤍"), **await self._user_vars(uid)), kb)
+        price = int(p.get("price", 0) or 0)
+        await self.alert(
+            f"{it.get('alert') or '🤍 Интерес: ' + html.escape(p.get('name', key))}\n"
+            f"Счёт после разговора: <code>/schet {uid} {key} {price or 'сумма'}</code>",
+            about_uid=uid,
+        )
 
     # ------------------------------------------------------------------ оплата
     async def start_payment(self, uid: int, key: str, amount: float | None = None, note: str = "") -> str | None:
@@ -197,6 +215,8 @@ class App:
         status = "✅ выдано автоматически" if delivered else "⚠️ <b>выдай вручную</b> (нет файлов/ссылок)"
         if p.get("delivery", {}).get("anketa"):
             status = "📝 клиент заполняет анкету"
+        if p.get("delivery", {}).get("owner_note"):
+            status = html.escape(str(p["delivery"]["owner_note"]))
         await self.alert(
             f"💰 <b>Оплата</b>: {html.escape(p.get('name', key))} — {int(order['amount'])} ₽ (заказ {order['id']})\n{status}",
             about_uid=uid,
@@ -208,15 +228,18 @@ class App:
         p = self.content.products.get(key, {})
         d = p.get("delivery", {}) or {}
         v = {**await self._user_vars(uid), **self.content.product_vars(key)}
+        links = [l for l in (d.get("links") or []) if isinstance(l, (list, tuple)) and len(l) == 2]
+        link_kb = self.keyboard([[l[0], f"url:{l[1]}"] for l in links]) if links else None
+        # если кроме ссылок ничего не выдаём — кнопки прямо под текстом, одним сообщением
+        inline_links = bool(links and d.get("text") and not d.get("files") and not d.get("access"))
         if d.get("text"):
-            await self.send(uid, render(d["text"], **v))
-        sent_any = False
+            await self.send(uid, render(d["text"], **v), link_kb if inline_links else None)
+        sent_any = inline_links
         for name in d.get("files") or []:
             if await self.send_file(uid, name):
                 sent_any = True
-        links = [l for l in (d.get("links") or []) if isinstance(l, (list, tuple)) and len(l) == 2]
-        if links:
-            await self.send(uid, "👇", self.keyboard([[l[0], f"url:{l[1]}"] for l in links]))
+        if links and not inline_links:
+            await self.send(uid, "👇", link_kb)
             sent_any = True
         if d.get("access") and await self.grant_access(uid, key):
             sent_any = True
