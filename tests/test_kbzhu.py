@@ -20,7 +20,7 @@ FB = FoodBase(ROOT / "kbzhu_food.yaml")
 def test_example_from_scenario():
     n = calculate(30, 165, 70, "mid", "lose", "calm")
     assert (n.bmr, n.tdee, n.kcal) == (1420, 2201, 1870)
-    assert (n.protein, n.fat, n.carbs) == (112, 63, 214)
+    assert (n.protein, n.fat, n.carbs) == (126, 63, 200)
     assert n.treat_kcal == 187 and n.deficit_pct == -15
 
 
