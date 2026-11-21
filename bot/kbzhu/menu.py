@@ -489,9 +489,6 @@ class MenuBuilder:
                 it.grams = _round_item(self.fb, it)
             m.items = [it for it in m.items if it.grams >= 5]
         _fix_after_round(self.fb, meals, target)
-        for m in meals:  # рецепт показываем, только если продукты в блюде — именно из рецепта
-            if m.how and not all(any(it.slot == sl and it.first for it in m.items) for sl in m.how_slots):
-                m.how = ""
         if prefs.cooking == "batch":
             for m in fresh:
                 if MEAL_TYPE[m.key] in ("lunch", "dinner"):
@@ -547,7 +544,7 @@ def fmt_day(fb: FoodBase, n: int, day: Day, custom_names: dict | None = None,
         for it in m.items:
             lines.append("• " + fmt_item(fb, it, custom_names))
         if show_how and m.how:
-            lines.append(f"<i>👩‍🍳 {m.how}</i>")
+            lines.append(f"<i>👩‍🍳 Как готовить: {m.how}</i>")
     if day.treat:
         p = fb.products[day.treat.product]
         lines.append("")
@@ -555,3 +552,4 @@ def fmt_day(fb: FoodBase, n: int, day: Day, custom_names: dict | None = None,
         if show_how and p.get("recipe") and p.get("how"):
             lines.append(f"<i>👩‍🍳 Мой ПП-рецепт: {p['how']}</i>")
     return "\n".join(lines)
+
