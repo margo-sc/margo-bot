@@ -659,7 +659,7 @@ class Kbzhu:
         await self.send(uid, self.t("menu_done"))
         if first_menu:
             await self.send_gifts(uid)
-        await self.upsell(uid, prof)
+        await self.offer_collections(uid)
         if first_menu:
             await self.schedule_follow(uid)
 
@@ -682,9 +682,9 @@ class Kbzhu:
         if not d.get("percent"):
             return None
         prof = await self.app.db.kbzhu_get(uid)
-        if not prof or not prof.get("menu_at"):
+        if not prof or not prof.get("offer_at"):
             return None
-        end = prof["menu_at"] + int(d.get("hours", 72)) * 3600
+        end = prof["offer_at"] + int(d.get("hours", 72)) * 3600
         return end if time.time() < end else None
 
     def _price(self, key: str, discounted: bool) -> int:
@@ -694,18 +694,21 @@ class Kbzhu:
             price = int(round(price * (100 - int(self._disc().get("percent", 0))) / 100))
         return price
 
-    async def upsell(self, uid: int, prof: dict) -> None:
-        d = self._disc()
-        rows = [
-            [(self.b("vedenie", price=_money(self._price("vedenie", True))), "k:buy:vedenie")],
-            [(self.b("konsult", price=_money(self._price("konsult", True))), "k:buy:konsult")],
-            [(self.b("catalog"), "a:screen:catalog")],
-            [(self.b("later"), "k:later")],
-        ]
-        text = self.t("upsell", discount=d.get("percent", 0), hours=d.get("hours", 72),
-                      vedenie_old=_money(self._price("vedenie", False)), vedenie_new=_money(self._price("vedenie", True)),
-                      konsult_old=_money(self._price("konsult", False)), konsult_new=_money(self._price("konsult", True)))
-        await self.send(uid, text, rows)
+    async def offer_collections(self, uid: int) -> None:
+        """Сразу после меню: сборники рецептов (обеды, ужины, перекусы)."""
+        if "recepty" not in self.app.content.products:
+            return
+        rows = [[(self.b("collections_all"), "a:product:recepty")]]
+        if "recepty_singles" in self.app.content.screens:
+            rows.append([(self.b("collections_singles"), "a:screen:recepty_singles")])
+        await self.send(uid, self.t("collections_offer"), rows)
+
+    async def start_discount(self, uid: int) -> None:
+        """Скидка на ведение и консультацию начинается с предложения на 3-й день."""
+        prof = await self.app.db.kbzhu_get(uid)
+        if prof and not prof.get("offer_at"):
+            prof["offer_at"] = int(time.time())
+            await self.app.db.kbzhu_save(uid, prof)
 
     async def buy(self, uid: int, what: str) -> None:
         await self.app.db.add_tag(uid, "kbzhu_buy_click")
@@ -839,3 +842,4 @@ class Kbzhu:
             return
         await self.app.db.kv_set("kbzhu_weekly", str(int(time.time())))
         await self.app.alert("📊 Сводка за неделю\n\n" + await self.stats_text(int(time.time()) - 7 * 86400))
+
