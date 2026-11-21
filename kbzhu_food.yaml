@@ -107,18 +107,6 @@ products:
   tomato_paste: {name: "Томатная паста", cat: sauce, k: 99, p: 4.8, f: 0, c: 19.0, syn: [томатная паста]}
   soy_sauce:   {name: "Соевый соус", cat: sauce, k: 50, p: 6.0, f: 0, c: 6.0, ml: true, syn: [соевый соус]}
 
-  # ---------- ПП-десерты Маргариты (для «любимого»), КБЖУ на 100 г ----------
-  pp_candies:  {name: "ПП-конфеты", cat: treat, k: 200, p: 2.8, f: 2.1, c: 41.4, piece: 24, piece_name: "шт.", cap: 144, recipe: true, how: "банан размять, смешать с крошкой хлебцев, скатать шарики и обвалять в какао", extra: true, syn: [пп конфеты, пп-конфеты]}
-  pp_roll:     {name: "Шоколадный ПП-рулет", cat: treat, k: 180, p: 15.0, f: 6.7, c: 11.7, piece: 60, piece_name: "кусочек", cap: 120, recipe: true, how: "шоколадный бисквит из яиц и какао + крем из мягкого творога", extra: true, syn: [пп рулет, шоколадный рулет]}
-  pp_protein_cake: {name: "Белковый торт без муки", cat: treat, k: 99, p: 13.4, f: 7.9, c: 7.5, cap: 200, recipe: true, how: "творожно-яичные коржи, крем из творога с мёдом, банан и малина", extra: true, syn: [белковый торт]}
-  pp_choco_madness: {name: "Шоколадное безумие", cat: treat, k: 180, p: 13.0, f: 8.7, c: 12.0, cap: 150, recipe: true, how: "творог + растопленный шоколад без сахара, пробить блендером и в холодильник на 2 часа", extra: true, syn: [шоколадное безумие]}
-  pp_medovik:  {name: "ПП-медовик", cat: treat, k: 218, p: 12.5, f: 5.3, c: 30.0, piece: 117, piece_name: "кусочек", cap: 117, recipe: true, how: "бисквит из овсяной муки и мёда, крем из мягкого творога", extra: true, syn: [пп медовик, медовик]}
-  pp_pan_cake: {name: "ПП-тортик на сковороде", cat: treat, k: 102, p: 6.3, f: 1.8, c: 15.0, cap: 200, recipe: true, how: "шоколадные коржи на кефире на сковороде + заварной крем на молоке", extra: true, syn: [тортик на сковороде]}
-  pp_tiramisu: {name: "ПП-тирамису", cat: treat, k: 120, p: 8.4, f: 1.6, c: 17.9, cap: 190, recipe: true, how: "хлебцы, пропитанные эспрессо, слоями с кремом из мягкого творога и какао", extra: true, syn: [пп тирамису, тирамису пп]}
-  pp_carrot_cake: {name: "ПП-морковный торт", cat: treat, k: 143, p: 5.8, f: 6.1, c: 13.6, piece: 170, piece_name: "кусочек", cap: 170, recipe: true, how: "коржи из моркови, овсянки и чернослива + крем из рикотты", extra: true, syn: [морковный торт]}
-  pp_protein_dessert: {name: "Высокобелковый ПП-десерт", cat: treat, k: 113, p: 11.7, f: 5.1, c: 7.8, cap: 250, recipe: true, how: "мягкий творог, яйца и какао — запечь 20 минут, сверху помадка", extra: true, syn: [белковый десерт]}
-  pp_banana_cake: {name: "Банановый кекс без сахара", cat: treat, k: 190, p: 6.2, f: 8.1, c: 24.5, piece: 88, piece_name: "кусочек", cap: 90, recipe: true, how: "бананы, яйца, арахисовая паста и овсяная мука, сверху тёмный шоколад", extra: true, syn: [банановый кекс]}
-
 # Кнопки в анкете (Шаг 4.1 сценария): категории и продукты в них
 groups:
   - title: "Белок"
@@ -134,18 +122,12 @@ groups:
   - title: "Жиры"
     items: [avocado, nuts, olive_oil, peanut_butter]
 
-treat_buttons: [pp_desserts, chocolate, cookies, ice_cream, candies, chips]
-
-# Наборы для «любимого»: одна кнопка — несколько продуктов, бот чередует их по дням
-treat_sets:
-  pp_desserts:
-    title: "🍰 ПП-десерты Марго"
-    items: [pp_candies, pp_roll, pp_medovik, pp_choco_madness, pp_tiramisu, pp_banana_cake, pp_carrot_cake, pp_protein_cake, pp_pan_cake, pp_protein_dessert]
+treat_buttons: [chocolate, cookies, ice_cream, candies, chips]
 
 # Что убирают исключения (Шаг 4.3)
 exclusions:
-  lactose: {title: "Без лактозы", cats: [milk, yogurt, kefir, cheese, cottage, soft_cheese], products: [ice_cream, sour_cream, pizza, cake, pp_roll, pp_protein_cake, pp_choco_madness, pp_medovik, pp_pan_cake, pp_tiramisu, pp_carrot_cake, pp_protein_dessert]}
-  gluten:  {title: "Без глютена", cats: [pasta, bread, lavash, oats, crispbread], products: [bulgur, couscous, cookies, waffles, pizza, cake, pp_candies, pp_medovik, pp_pan_cake, pp_tiramisu, pp_carrot_cake, pp_protein_dessert, pp_banana_cake]}
+  lactose: {title: "Без лактозы", cats: [milk, yogurt, kefir, cheese, cottage, soft_cheese], products: [ice_cream, sour_cream, pizza, cake]}
+  gluten:  {title: "Без глютена", cats: [pasta, bread, lavash, oats, crispbread], products: [bulgur, couscous, cookies, waffles, pizza, cake]}
   no_meat: {title: "Не ем мясо", cats: [poultry, meat, ham], products: []}
   no_fish: {title: "Не ем рыбу", cats: [fish, seafood, salted_fish, canned_fish, surimi], products: []}
 
@@ -1057,3 +1039,4 @@ dishes:
     items:
       - {pick: [eggs], g: 110, min: 55, max: 110}
       - {pick: [cucumber, tomato, pepper, carrot, lettuce], g: 150, min: 80, max: 200, opt: true}
+
