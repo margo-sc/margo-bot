@@ -499,6 +499,8 @@ class App:
         v = {**await self._user_vars(job["user_id"])}
         if params.get("product"):
             v.update(self.content.product_vars(params["product"]))
+        if step.get("starts_discount"):  # предложение личной работы: с этого момента идёт скидка
+            await self.kbzhu.start_discount(job["user_id"])
         ok = await self.send(job["user_id"], render(step.get("text", ""), **v), self.keyboard(step.get("buttons"), v))
         if ok and step.get("file") and not await self.send_file(job["user_id"], step["file"], protect=False):
             await self.alert(f"⚠️ Не загружен файл <code>{html.escape(step['file'])}</code> — отправь его боту "
@@ -525,3 +527,4 @@ class App:
                 await asyncio.wait_for(stop.wait(), timeout=self.cfg.tick_seconds)
             except asyncio.TimeoutError:
                 pass
+
