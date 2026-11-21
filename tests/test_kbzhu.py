@@ -141,13 +141,9 @@ def test_random_profiles_accuracy():
     assert sum(errs["protein"]) / len(errs["protein"]) < 0.10
 
 
-def test_pp_desserts_set_in_pieces():
-    n = calculate(30, 165, 70, "mid", "lose").as_dict()
-    days, _ = MenuBuilder(FB).build(_prefs(treats=["pp_desserts"]), n, seed=4)
-    treats = {d.treat.product for d in days if d.treat}
-    assert treats <= set(FB.treat_sets["pp_desserts"]["items"]) and len(treats) >= 4
-    text = "\n".join(fmt_day(FB, i + 1, d) for i, d in enumerate(days))
-    assert "Мой ПП-рецепт" in text and ("кусоч" in text or "шт." in text)
+def test_no_pp_desserts_anywhere():
+    assert "pp_desserts" not in FB.treat_buttons and not FB.treat_sets
+    assert not [k for k in FB.products if k.startswith("pp_")]
 
 
 def test_recipe_text_only_when_products_match():
@@ -247,13 +243,22 @@ async def test_full_flow_norm_menu_discount(env):
     assert len(days) == 7
     assert not any("Творог" in t or "Молоко" in t for t in days)   # без лактозы
     assert any("Шоколад" in t for t in days)
-    assert any("скидка 15%" in t for t in out)
+    assert any("3 сборника" in t and "499" in t for t in out)          # сразу после меню — сборники
+    assert "a:product:recepty" in callbacks(s.last_markup(CLIENT))
+    assert not any("скидка 15%" in t for t in out)                     # личная работа — только на 3-й день
     prof = await app.db.kbzhu_get(CLIENT)
     assert prof["menu"] and prof["menu_at"]
     assert await app.db.has_pending(CLIENT, "chain:kbzhu_follow")
     top = await app.db.kbzhu_unknown_top()
     assert ("трубочка", 1) in top
 
+    # до предложения на 3-й день скидки нет
+    await go(dp, bot, upd_callback(CLIENT, "a:kbzhu:buy:konsult"))
+    assert "a:pay:konsult" in callbacks(s.last_markup(CLIENT))
+    # 3-й день: предложение личной работы запускает скидку
+    await app.kbzhu.start_discount(CLIENT)
+    prof = await app.db.kbzhu_get(CLIENT)
+    assert prof["offer_at"]
     # скидочная консультация
     await go(dp, bot, upd_callback(CLIENT, "k:buy:konsult"))
     assert "2 125" in texts(s)[-1] and "a:pay:konsult_kbzhu" in callbacks(s.last_markup(CLIENT))
@@ -263,7 +268,8 @@ async def test_full_flow_norm_menu_discount(env):
     assert any("/schet 222 vedenie 8662" in t for t in texts(s, ADMIN))
 
     # после 72 часов — обычная цена
-    prof["menu_at"] = int(time.time()) - 73 * 3600
+    prof = await app.db.kbzhu_get(CLIENT)
+    prof["offer_at"] = int(time.time()) - 73 * 3600
     await app.db.kbzhu_save(CLIENT, prof)
     await go(dp, bot, upd_callback(CLIENT, "a:kbzhu:buy:konsult"))
     assert "a:pay:konsult" in callbacks(s.last_markup(CLIENT))
@@ -279,6 +285,10 @@ async def test_follow_chain_and_feedback(env):
     out = texts(s)
     assert any("как прошёл первый день" in t for t in out)
     assert any("Неделя прошла" in t for t in out)
+    day3 = next(t for t in out if "третий день" in t)
+    assert "8 662" in day3 and "2 125" in day3 and "{" not in day3
+    prof_ok = await app.db.kbzhu_get(CLIENT)
+    assert prof_ok is None or prof_ok.get("offer_at") is None or prof_ok["offer_at"] > 0
     await go(dp, bot, upd_callback(CLIENT, "a:kbzhu:fb:hungry"))
     assert "голод" in texts(s)[-1]
 
@@ -423,3 +433,4 @@ async def test_day2_offers_collections(env):
     for job in await app.db.due_jobs():
         await app.run_job(job)
     assert any("3 сборника" in t and "499" in t for t in texts(s))
+
