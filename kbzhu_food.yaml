@@ -1,0 +1,1059 @@
+# =====================================================================
+#  БАЗА ПРОДУКТОВ И БЛЮД ДЛЯ МЕНЮ НА 7 ДНЕЙ
+#  КБЖУ — на 100 г продукта (крупы, макароны, хлопья — в сухом виде).
+#  k — калории, p — белки, f — жиры, c — углеводы.
+#  syn — как ещё могут написать продукт (для кнопки «Добавить своё»).
+#  extra: true — продукта нет в кнопках, но бот найдёт его, если девушка его впишет.
+#  После правок напиши боту /reload.
+# =====================================================================
+
+products:
+  # ---------- белок ----------
+  chicken:     {name: "Куриное филе", cat: poultry, k: 113, p: 23.6, f: 1.9, c: 0.4, syn: [курица, куриная грудка, грудка, филе курицы, куриное филе]}
+  turkey:      {name: "Филе индейки", cat: poultry, k: 114, p: 24.0, f: 2.0, c: 0, syn: [индейка, грудка индейки, филе индейки]}
+  beef:        {name: "Говядина постная", cat: meat, k: 158, p: 22.2, f: 7.1, c: 0, syn: [говядина, телятина, мясо, вырезка]}
+  white_fish:  {name: "Белая рыба (треска, минтай, хек)", cat: fish, k: 78, p: 17.7, f: 0.7, c: 0, syn: [белая рыба, треска, минтай, хек, судак, тилапия, пангасиус, рыба]}
+  red_fish:    {name: "Красная рыба (лосось, горбуша)", cat: fish, k: 160, p: 21.0, f: 8.5, c: 0, syn: [красная рыба, лосось, семга, сёмга, форель, горбуша, кета, нерка]}
+  shrimp:      {name: "Креветки", cat: seafood, k: 97, p: 22.0, f: 1.0, c: 0, syn: [креветки, креветка, морепродукты, кальмар]}
+  eggs:        {name: "Яйца", cat: eggs, k: 157, p: 12.7, f: 11.5, c: 0.7, piece: 55, syn: [яйцо, яйца, куриные яйца]}
+  cottage:     {name: "Творог 5%", cat: cottage, k: 121, p: 17.2, f: 5.0, c: 1.8, syn: [творог, творожок, зернёный творог, зерненый творог, мягкий творог, творог мягкий, творог в брикетах]}
+  tofu:        {name: "Тофу", cat: tofu, k: 110, p: 12.0, f: 6.0, c: 2.0, syn: [тофу, соевый сыр]}
+  # ---------- гарниры ----------
+  buckwheat:   {name: "Гречка", cat: grain, k: 313, p: 12.6, f: 3.3, c: 62.1, dry: true, syn: [гречка, гречневая крупа, греча]}
+  rice:        {name: "Рис", cat: grain, k: 344, p: 6.7, f: 0.7, c: 78.9, dry: true, syn: [рис, бурый рис, басмати, жасмин]}
+  bulgur:      {name: "Булгур", cat: grain, k: 342, p: 12.3, f: 1.3, c: 57.6, dry: true, syn: [булгур]}
+  pasta:       {name: "Макароны из твёрдых сортов", cat: pasta, k: 344, p: 12.0, f: 1.5, c: 70.0, dry: true, syn: [макароны, паста, спагетти, лапша, рожки]}
+  potato:      {name: "Картофель", cat: potato, k: 77, p: 2.0, f: 0.4, c: 16.3, syn: [картофель, картошка, картофан]}
+  sweet_potato: {name: "Батат", cat: potato, k: 86, p: 1.6, f: 0.1, c: 20.1, syn: [батат, сладкий картофель]}
+  oats:        {name: "Овсяные хлопья", cat: oats, k: 352, p: 12.3, f: 6.2, c: 61.8, dry: true, syn: [овсянка, овсяные хлопья, геркулес, овсяная каша]}
+  bread:       {name: "Цельнозерновой хлеб", cat: bread, k: 247, p: 13.4, f: 3.4, c: 41.2, syn: [хлеб, цельнозерновой хлеб, тост, тосты, ржаной хлеб, бородинский, ржаной край, тостовый хлеб]}
+  lavash:      {name: "Лаваш тонкий", cat: lavash, k: 236, p: 7.9, f: 1.0, c: 47.6, syn: [лаваш, тортилья, тортилья лепешка]}
+  # ---------- овощи ----------
+  cucumber:    {name: "Огурцы", cat: veg, k: 15, p: 0.8, f: 0.1, c: 2.8, syn: [огурец, огурцы]}
+  tomato:      {name: "Помидоры", cat: veg, k: 20, p: 0.6, f: 0.2, c: 4.2, syn: [помидор, помидоры, томаты, черри]}
+  broccoli:    {name: "Брокколи", cat: veg, k: 34, p: 2.8, f: 0.4, c: 5.2, syn: [брокколи]}
+  zucchini:    {name: "Кабачок", cat: veg, k: 24, p: 0.6, f: 0.3, c: 4.6, syn: [кабачок, кабачки, цукини]}
+  pepper:      {name: "Болгарский перец", cat: veg, k: 26, p: 1.3, f: 0.1, c: 5.3, syn: [перец, болгарский перец, сладкий перец]}
+  lettuce:     {name: "Листовой салат", cat: veg, k: 14, p: 1.2, f: 0.3, c: 1.3, syn: [салат, листья салата, айсберг, романо, руккола, салатный микс]}
+  carrot:      {name: "Морковь", cat: veg, k: 35, p: 1.3, f: 0.1, c: 6.9, syn: [морковь, морковка]}
+  veg_mix:     {name: "Овощная смесь (замороженная)", cat: veg, k: 45, p: 2.4, f: 0.3, c: 8.0, syn: [овощная смесь, замороженные овощи, мексиканская смесь, гавайская смесь]}
+  # ---------- фрукты и ягоды ----------
+  banana:      {name: "Банан", cat: fruit, k: 96, p: 1.5, f: 0.5, c: 21.0, syn: [банан, бананы]}
+  apple:       {name: "Яблоко", cat: fruit, k: 47, p: 0.4, f: 0.4, c: 9.8, syn: [яблоко, яблоки]}
+  berries:     {name: "Ягоды", cat: berries, k: 45, p: 0.8, f: 0.4, c: 9.0, syn: [ягоды, клубника, черника, малина, голубика, смородина, вишня]}
+  orange:      {name: "Апельсин", cat: fruit, k: 43, p: 0.9, f: 0.2, c: 8.1, syn: [апельсин, апельсины, грейпфрут]}
+  pear:        {name: "Груша", cat: fruit, k: 47, p: 0.4, f: 0.3, c: 10.3, syn: [груша, груши]}
+  # ---------- молочное ----------
+  milk:        {name: "Молоко 2,5%", cat: milk, k: 52, p: 2.8, f: 2.5, c: 4.7, ml: true, syn: [молоко]}
+  yogurt:      {name: "Натуральный йогурт без сахара", cat: yogurt, k: 60, p: 4.3, f: 2.5, c: 5.0, syn: [йогурт, натуральный йогурт]}
+  kefir:       {name: "Кефир 2,5%", cat: kefir, k: 53, p: 2.9, f: 2.5, c: 4.0, ml: true, syn: [кефир, ряженка, айран, тан]}
+  cheese:      {name: "Сыр", cat: cheese, k: 356, p: 24.0, f: 28.0, c: 0, syn: [сыр, сыр твердый, сыр твёрдый, российский, гауда, сулугуни]}
+  greek:       {name: "Греческий йогурт 2%", cat: yogurt, k: 66, p: 8.5, f: 2.0, c: 3.6, syn: [греческий йогурт, греческий, скир, исландский йогурт]}
+  # ---------- жиры ----------
+  avocado:     {name: "Авокадо", cat: avocado, k: 160, p: 2.0, f: 14.7, c: 1.8, syn: [авокадо]}
+  nuts:        {name: "Орехи", cat: nuts, k: 640, p: 16.0, f: 60.0, c: 10.0, syn: [орехи, грецкие орехи, миндаль, кешью, фундук, арахис]}
+  olive_oil:   {name: "Оливковое масло", cat: oil, k: 898, p: 0, f: 99.8, c: 0, syn: [оливковое масло, масло, растительное масло, подсолнечное масло]}
+  peanut_butter: {name: "Арахисовая паста", cat: nutbutter, k: 588, p: 25.0, f: 50.0, c: 20.0, syn: [арахисовая паста, ореховая паста, арахисовое масло]}
+  # ---------- любимое ----------
+  chocolate:   {name: "Шоколад", cat: treat, k: 540, p: 6.2, f: 33.0, c: 52.0, cap: 40, syn: [шоколад, шоколадка, горький шоколад, молочный шоколад]}
+  cookies:     {name: "Печенье", cat: treat, k: 440, p: 6.5, f: 15.0, c: 70.0, cap: 50, syn: [печенье, печеньки, овсяное печенье]}
+  ice_cream:   {name: "Мороженое", cat: treat, k: 232, p: 3.2, f: 15.0, c: 20.8, cap: 120, syn: [мороженое, пломбир, эскимо]}
+  candies:     {name: "Конфеты", cat: treat, k: 500, p: 4.0, f: 25.0, c: 64.0, cap: 40, syn: [конфеты, конфета, батончик, сникерс, твикс]}
+  chips:       {name: "Чипсы", cat: treat, k: 530, p: 6.0, f: 32.0, c: 52.0, cap: 35, syn: [чипсы, начос, сухарики]}
+
+  # ---------- нет в кнопках, но бот поймёт, если впишут ----------
+  pork:        {name: "Свинина (вырезка)", cat: meat, k: 142, p: 19.4, f: 7.1, c: 0, extra: true, syn: [свинина, свиная вырезка, свиная корейка]}
+  minced_beef: {name: "Фарш говяжий", cat: meat, k: 200, p: 18.0, f: 14.0, c: 0, extra: true, syn: [фарш, говяжий фарш, котлеты]}
+  tuna:        {name: "Тунец в собственном соку", cat: canned_fish, k: 96, p: 21.0, f: 1.0, c: 0, syn: [тунец, консервированный тунец, тунец консервированный]}
+  quinoa:      {name: "Киноа", cat: grain, k: 368, p: 14.1, f: 6.1, c: 57.2, dry: true, extra: true, syn: [киноа]}
+  couscous:    {name: "Кускус", cat: grain, k: 376, p: 12.8, f: 0.6, c: 72.4, dry: true, extra: true, syn: [кускус]}
+  lentils:     {name: "Чечевица", cat: legumes, k: 314, p: 24.0, f: 1.5, c: 42.7, dry: true, syn: [чечевица]}
+  chickpeas:   {name: "Нут", cat: grain, k: 309, p: 20.1, f: 4.3, c: 46.2, dry: true, extra: true, syn: [нут, хумус]}
+  cabbage:     {name: "Капуста", cat: veg, k: 27, p: 1.8, f: 0.1, c: 4.7, extra: true, syn: [капуста, белокочанная капуста, пекинская капуста]}
+  eggplant:    {name: "Баклажан", cat: veg, k: 24, p: 1.2, f: 0.1, c: 4.5, extra: true, syn: [баклажан, баклажаны]}
+  mushrooms:   {name: "Шампиньоны", cat: veg, k: 27, p: 4.3, f: 1.0, c: 0.1, extra: true, syn: [грибы, шампиньоны]}
+  green_beans: {name: "Стручковая фасоль", cat: veg, k: 24, p: 2.0, f: 0.2, c: 3.6, extra: true, syn: [стручковая фасоль, фасоль стручковая]}
+  kiwi:        {name: "Киви", cat: fruit, k: 47, p: 0.8, f: 0.4, c: 8.1, extra: true, syn: [киви]}
+  tangerine:   {name: "Мандарин", cat: fruit, k: 38, p: 0.8, f: 0.2, c: 7.5, extra: true, syn: [мандарин, мандарины]}
+  persimmon:   {name: "Хурма", cat: fruit, k: 67, p: 0.5, f: 0.4, c: 15.3, extra: true, syn: [хурма]}
+  grapes:      {name: "Виноград", cat: fruit, k: 72, p: 0.6, f: 0.6, c: 15.4, extra: true, syn: [виноград]}
+  sour_cream:  {name: "Сметана 15%", cat: yogurt, k: 158, p: 2.6, f: 15.0, c: 3.0, extra: true, syn: [сметана]}
+  cream_cheese: {name: "Творожный сыр (лёгкий)", cat: soft_cheese, k: 160, p: 9.0, f: 12.0, c: 3.5, syn: [творожный сыр, сливочный сыр, креметте, филадельфия, рикотта, творожный сыр лайт]}
+  marshmallow: {name: "Зефир", cat: treat, k: 304, p: 0.8, f: 0, c: 79.8, cap: 50, extra: true, syn: [зефир, пастила]}
+  marmalade:   {name: "Мармелад", cat: treat, k: 321, p: 0.1, f: 0.1, c: 79.4, cap: 50, extra: true, syn: [мармелад, мармеладки]}
+  dates:       {name: "Финики", cat: treat, k: 274, p: 2.5, f: 0.5, c: 69.2, cap: 40, extra: true, syn: [финики, сухофрукты, курага, чернослив]}
+  honey:       {name: "Мёд", cat: treat, k: 304, p: 0.8, f: 0, c: 80.3, cap: 25, extra: true, syn: [мед, мёд]}
+  pizza:       {name: "Пицца", cat: treat, k: 250, p: 11.0, f: 10.0, c: 28.0, cap: 150, extra: true, syn: [пицца]}
+  cake:        {name: "Пирожное", cat: treat, k: 400, p: 5.0, f: 22.0, c: 45.0, cap: 60, extra: true, syn: [пирожное, торт, чизкейк, тирамису, эклер]}
+  waffles:     {name: "Вафли", cat: treat, k: 520, p: 5.0, f: 28.0, c: 62.0, cap: 40, extra: true, syn: [вафли, вафля]}
+
+  # ---------- из рецептов Маргариты ----------
+  salted_fish: {name: "Слабосолёная красная рыба (форель, лосось)", cat: salted_fish, k: 190, p: 21.0, f: 11.5, c: 0, syn: [слабосоленая рыба, слабосолёная рыба, слабосоленая форель, слабосоленый лосось, малосольная рыба, форель слабосоленая]}
+  crab_sticks: {name: "Крабовые палочки", cat: surimi, k: 73, p: 6.0, f: 1.0, c: 10.0, syn: [крабовые палочки, крабовое мясо, крабовые]}
+  light_cheese: {name: "Сыр лёгкий (до 17%)", cat: cheese, k: 260, p: 28.0, f: 16.0, c: 0, syn: [сыр легкий, сыр лёгкий, легкий сыр, моцарелла, моцарелла лайт, сыр лайт, нежирный сыр]}
+  feta:        {name: "Фета / брынза", cat: cheese, k: 264, p: 14.0, f: 21.0, c: 4.0, extra: true, syn: [фета, брынза, сиртаки]}
+  egg_white:   {name: "Яичные белки", cat: egg_white, k: 44, p: 11.1, f: 0, c: 0, piece: 30, piece_name: "шт.", syn: [белки, яичный белок, белок яичный]}
+  chicken_thigh: {name: "Куриное бедро без кожи", cat: poultry, k: 125, p: 19.7, f: 4.6, c: 0, extra: true, syn: [куриное бедро, бедро, бедрышки, куриные бедра]}
+  turkey_ham:  {name: "Ветчина из индейки", cat: ham, k: 100, p: 14.0, f: 4.0, c: 2.0, extra: true, syn: [ветчина, ветчина из индейки]}
+  beans:       {name: "Фасоль консервированная", cat: legumes, k: 99, p: 6.7, f: 0.3, c: 17.4, syn: [фасоль, красная фасоль, белая фасоль, фасоль консервированная]}
+  corn:        {name: "Кукуруза консервированная", cat: corn, k: 70, p: 2.5, f: 1.0, c: 13.0, extra: true, syn: [кукуруза, консервированная кукуруза]}
+  rice_noodles: {name: "Рисовая лапша", cat: noodles, k: 364, p: 6.0, f: 0.6, c: 80.0, dry: true, extra: true, syn: [рисовая лапша, фунчоза, лапша рисовая]}
+  crispbread:  {name: "Хлебцы", cat: crispbread, k: 360, p: 10.0, f: 3.0, c: 72.0, piece: 10, piece_name: "шт.", syn: [хлебцы, хлебец, доктор корнер, dr korner, dr corner, хлебцы доктор корнер]}
+  spinach:     {name: "Шпинат", cat: veg, k: 23, p: 2.9, f: 0.4, c: 2.0, syn: [шпинат]}
+  cauliflower: {name: "Цветная капуста", cat: veg, k: 30, p: 2.5, f: 0.3, c: 4.2, syn: [цветная капуста]}
+  asparagus:   {name: "Спаржа", cat: veg, k: 20, p: 2.2, f: 0.1, c: 3.9, extra: true, syn: [спаржа]}
+  canned_tomatoes: {name: "Томаты в собственном соку", cat: veg, k: 20, p: 1.1, f: 0.1, c: 3.5, extra: true, syn: [томаты в собственном соку, консервированные томаты]}
+  onion:       {name: "Лук", cat: aroma, k: 41, p: 1.4, f: 0, c: 9.1, syn: [лук, репчатый лук, луковица]}
+  tomato_paste: {name: "Томатная паста", cat: sauce, k: 99, p: 4.8, f: 0, c: 19.0, syn: [томатная паста]}
+  soy_sauce:   {name: "Соевый соус", cat: sauce, k: 50, p: 6.0, f: 0, c: 6.0, ml: true, syn: [соевый соус]}
+
+  # ---------- ПП-десерты Маргариты (для «любимого»), КБЖУ на 100 г ----------
+  pp_candies:  {name: "ПП-конфеты", cat: treat, k: 200, p: 2.8, f: 2.1, c: 41.4, piece: 24, piece_name: "шт.", cap: 144, recipe: true, how: "банан размять, смешать с крошкой хлебцев, скатать шарики и обвалять в какао", extra: true, syn: [пп конфеты, пп-конфеты]}
+  pp_roll:     {name: "Шоколадный ПП-рулет", cat: treat, k: 180, p: 15.0, f: 6.7, c: 11.7, piece: 60, piece_name: "кусочек", cap: 120, recipe: true, how: "шоколадный бисквит из яиц и какао + крем из мягкого творога", extra: true, syn: [пп рулет, шоколадный рулет]}
+  pp_protein_cake: {name: "Белковый торт без муки", cat: treat, k: 99, p: 13.4, f: 7.9, c: 7.5, cap: 200, recipe: true, how: "творожно-яичные коржи, крем из творога с мёдом, банан и малина", extra: true, syn: [белковый торт]}
+  pp_choco_madness: {name: "Шоколадное безумие", cat: treat, k: 180, p: 13.0, f: 8.7, c: 12.0, cap: 150, recipe: true, how: "творог + растопленный шоколад без сахара, пробить блендером и в холодильник на 2 часа", extra: true, syn: [шоколадное безумие]}
+  pp_medovik:  {name: "ПП-медовик", cat: treat, k: 218, p: 12.5, f: 5.3, c: 30.0, piece: 117, piece_name: "кусочек", cap: 117, recipe: true, how: "бисквит из овсяной муки и мёда, крем из мягкого творога", extra: true, syn: [пп медовик, медовик]}
+  pp_pan_cake: {name: "ПП-тортик на сковороде", cat: treat, k: 102, p: 6.3, f: 1.8, c: 15.0, cap: 200, recipe: true, how: "шоколадные коржи на кефире на сковороде + заварной крем на молоке", extra: true, syn: [тортик на сковороде]}
+  pp_tiramisu: {name: "ПП-тирамису", cat: treat, k: 120, p: 8.4, f: 1.6, c: 17.9, cap: 190, recipe: true, how: "хлебцы, пропитанные эспрессо, слоями с кремом из мягкого творога и какао", extra: true, syn: [пп тирамису, тирамису пп]}
+  pp_carrot_cake: {name: "ПП-морковный торт", cat: treat, k: 143, p: 5.8, f: 6.1, c: 13.6, piece: 170, piece_name: "кусочек", cap: 170, recipe: true, how: "коржи из моркови, овсянки и чернослива + крем из рикотты", extra: true, syn: [морковный торт]}
+  pp_protein_dessert: {name: "Высокобелковый ПП-десерт", cat: treat, k: 113, p: 11.7, f: 5.1, c: 7.8, cap: 250, recipe: true, how: "мягкий творог, яйца и какао — запечь 20 минут, сверху помадка", extra: true, syn: [белковый десерт]}
+  pp_banana_cake: {name: "Банановый кекс без сахара", cat: treat, k: 190, p: 6.2, f: 8.1, c: 24.5, piece: 88, piece_name: "кусочек", cap: 90, recipe: true, how: "бананы, яйца, арахисовая паста и овсяная мука, сверху тёмный шоколад", extra: true, syn: [банановый кекс]}
+
+# Кнопки в анкете (Шаг 4.1 сценария): категории и продукты в них
+groups:
+  - title: "Белок"
+    items: [chicken, turkey, beef, white_fish, red_fish, salted_fish, tuna, shrimp, crab_sticks, eggs, egg_white, cottage, tofu]
+  - title: "Гарниры"
+    items: [buckwheat, rice, bulgur, pasta, potato, sweet_potato, oats, bread, crispbread, lavash, lentils, beans]
+  - title: "Овощи"
+    items: [cucumber, tomato, broccoli, cauliflower, zucchini, pepper, lettuce, spinach, carrot, veg_mix]
+  - title: "Фрукты и ягоды"
+    items: [banana, apple, berries, orange, pear]
+  - title: "Молочное"
+    items: [milk, yogurt, greek, kefir, cheese, light_cheese, cream_cheese]
+  - title: "Жиры"
+    items: [avocado, nuts, olive_oil, peanut_butter]
+
+treat_buttons: [pp_desserts, chocolate, cookies, ice_cream, candies, chips]
+
+# Наборы для «любимого»: одна кнопка — несколько продуктов, бот чередует их по дням
+treat_sets:
+  pp_desserts:
+    title: "🍰 ПП-десерты Марго"
+    items: [pp_candies, pp_roll, pp_medovik, pp_choco_madness, pp_tiramisu, pp_banana_cake, pp_carrot_cake, pp_protein_cake, pp_pan_cake, pp_protein_dessert]
+
+# Что убирают исключения (Шаг 4.3)
+exclusions:
+  lactose: {title: "Без лактозы", cats: [milk, yogurt, kefir, cheese, cottage, soft_cheese], products: [ice_cream, sour_cream, pizza, cake, pp_roll, pp_protein_cake, pp_choco_madness, pp_medovik, pp_pan_cake, pp_tiramisu, pp_carrot_cake, pp_protein_dessert]}
+  gluten:  {title: "Без глютена", cats: [pasta, bread, lavash, oats, crispbread], products: [bulgur, couscous, cookies, waffles, pizza, cake, pp_candies, pp_medovik, pp_pan_cake, pp_tiramisu, pp_carrot_cake, pp_protein_dessert, pp_banana_cake]}
+  no_meat: {title: "Не ем мясо", cats: [poultry, meat, ham], products: []}
+  no_fish: {title: "Не ем рыбу", cats: [fish, seafood, salted_fish, canned_fish, surimi], products: []}
+
+# Масло для готовки есть почти у всех: если девушка его не отметила, бот всё равно его использует
+pantry: [olive_oil, onion, tomato_paste, soy_sauce]
+
+# Доли калорий по приёмам пищи (после «любимого»)
+meal_plans:
+  "3":   {breakfast: 0.30, lunch: 0.40, dinner: 0.30}
+  "3+1": {breakfast: 0.25, lunch: 0.35, snack: 0.15, dinner: 0.25}
+  "4-5": {breakfast: 0.25, snack1: 0.10, lunch: 0.30, snack: 0.10, dinner: 0.25}
+
+# ---------------------------------------------------------------------
+#  БЛЮДА
+#  meal: breakfast / lunch / dinner / snack
+#  quick: true — готовится до 15 минут (для «почти не готовлю»)
+#  batch: true — хорошо хранится 2–3 дня (для «готовлю заранее»)
+#  src: margo — рецепт из книг Маргариты; how — коротко, как готовить (показывается в меню)
+#  alt — запасное название, если основной продукт заменён (slots — номера строк items, с нуля)
+#  add: true — продукт добавлен сверх рецепта (хлеб, салат). «Как готовить» показывается,
+#             только если все остальные продукты — именно из рецепта
+#  items: pick — подходящие продукты (ключи) или категории (@категория)
+#         g — обычная порция, min/max — в каких пределах бот может менять граммы
+#         opt: true — если такого продукта у девушки нет, блюдо всё равно подходит
+# ---------------------------------------------------------------------
+dishes:
+  # ===================== ЗАВТРАКИ =====================
+  - id: b_oat_greek
+    meal: breakfast
+    title: "Овсянка с ягодами и греческим йогуртом"
+    src: margo
+    quick: true
+    how: "Провари овсянку 3–5 минут до густоты, сверху выложи йогурт и ягоды."
+    alt:
+      - {slots: [2], title: "Овсянка с ягодами и йогуртом"}
+    items:
+      - {pick: [oats], g: 40, min: 30, max: 80}
+      - {pick: [milk], g: 120, min: 80, max: 200, opt: true}
+      - {pick: [greek, yogurt], g: 80, min: 50, max: 150, opt: true}
+      - {pick: ["@berries", banana, apple, pear, "@fruit"], g: 60, min: 40, max: 150, opt: true}
+      - {pick: [nuts, peanut_butter], g: 10, min: 0, max: 20, opt: true, add: true}
+  - id: b_avocado_toast
+    meal: breakfast
+    title: "Тост с авокадо и яйцом пашот"
+    src: margo
+    quick: true
+    how: "Подрумянь тост, разомни авокадо с солью и лимоном, отвари яйцо пашот 2,5–3 минуты и собери тост."
+    items:
+      - {pick: [bread], g: 35, min: 35, max: 100}
+      - {pick: [avocado], g: 50, min: 30, max: 70}
+      - {pick: [eggs], g: 55, min: 55, max: 165}
+      - {pick: [cucumber, tomato, lettuce, spinach], g: 80, min: 0, max: 150, opt: true, add: true}
+  - id: b_pancakes
+    meal: breakfast
+    title: "Творожные панкейки без сахара"
+    src: margo
+    quick: true
+    how: "Смешай творог, яйцо, овсяную муку (хлопья в блендере) и разрыхлитель, жарь на сухой сковороде по 2 минуты с каждой стороны."
+    items:
+      - {pick: [cottage], g: 120, min: 100, max: 250}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [oats], g: 30, min: 20, max: 50}
+      - {pick: ["@berries", banana, apple, "@fruit"], g: 80, min: 0, max: 150, opt: true, add: true}
+      - {pick: [greek, yogurt], g: 50, min: 0, max: 100, opt: true, add: true}
+  - id: b_omelet_veg
+    meal: breakfast
+    title: "Омлет с овощами без масла"
+    src: margo
+    quick: true
+    how: "Потуши овощи 2 минуты на антипригарной сковороде, залей взбитыми яйцами (и белками) и готовь под крышкой."
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [egg_white], g: 60, min: 0, max: 90, opt: true}
+      - {pick: [pepper, tomato, spinach, zucchini, broccoli, veg_mix, mushrooms], g: 120, min: 80, max: 250, opt: true}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 80, opt: true, add: true}
+  - id: b_omelet_cheese
+    meal: breakfast
+    title: "Омлет с овощами и сыром"
+    src: margo
+    quick: true
+    how: "Яйца взбей с молоком и солью, добавь нарезанный помидор, посыпь сыром и готовь под крышкой 5–7 минут."
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [milk], g: 50, min: 30, max: 80, opt: true}
+      - {pick: [tomato, pepper, spinach, zucchini], g: 100, min: 60, max: 200, opt: true}
+      - {pick: [light_cheese, cheese], g: 30, min: 15, max: 40, opt: true}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 80, opt: true, add: true}
+  - id: b_oat_pancake
+    meal: breakfast
+    title: "Овсяноблин с творожным кремом и ягодами"
+    src: margo
+    quick: true
+    how: "Смешай овсяную муку, яйцо и белок, испеки блин. Творог взбей с подсластителем, выложи на блин и добавь ягоды."
+    items:
+      - {pick: [oats], g: 40, min: 30, max: 70}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [egg_white], g: 30, min: 0, max: 60, opt: true}
+      - {pick: [cottage], g: 80, min: 50, max: 150}
+      - {pick: ["@berries", banana, "@fruit"], g: 50, min: 0, max: 120, opt: true}
+  - id: b_salmon_sandwich
+    meal: breakfast
+    title: "Бутерброд с лососем и творожным сыром"
+    src: margo
+    quick: true
+    how: "Хлеб подсуши, намажь творожный сыр, выложи рыбу и огурец."
+    items:
+      - {pick: [bread], g: 40, min: 40, max: 100}
+      - {pick: [salted_fish], g: 60, min: 40, max: 100}
+      - {pick: [cream_cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 50, min: 0, max: 150, opt: true}
+  - id: b_lavash_egg
+    meal: breakfast
+    title: "Лаваш с яйцом и сыром"
+    src: margo
+    quick: true
+    how: "Пожарь яйцо, выложи на лаваш с сыром и помидором, сверни и подрумянь на сковороде."
+    items:
+      - {pick: [lavash], g: 40, min: 30, max: 80}
+      - {pick: [eggs], g: 55, min: 55, max: 165}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [tomato, cucumber, pepper, lettuce], g: 80, min: 0, max: 150, opt: true}
+  - id: b_omelet_cottage
+    meal: breakfast
+    title: "Омлет с творогом и зеленью"
+    src: margo
+    quick: true
+    how: "Яйца взбей с творогом, добавь зелень и жарь под крышкой 5–6 минут."
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [cottage], g: 80, min: 50, max: 150}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 80, opt: true, add: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: b_lavash_envelope
+    meal: breakfast
+    title: "Лаваш-конвертик с творогом и сыром"
+    src: margo
+    quick: true
+    how: "Выложи на лаваш творог и сыр, сложи конвертом и обжарь на сухой сковороде по 2–3 минуты до хруста."
+    items:
+      - {pick: [lavash], g: 40, min: 30, max: 70}
+      - {pick: [cottage], g: 80, min: 60, max: 150}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: b_crab_toast
+    meal: breakfast
+    title: "Хрустящие тосты с крабовой намазкой"
+    src: margo
+    quick: true
+    how: "Поджарь тосты. Крабовые палочки и варёное яйцо измельчи, смешай с творожным сыром, намажь на тосты, сверху помидор."
+    items:
+      - {pick: [bread], g: 60, min: 40, max: 100}
+      - {pick: [crab_sticks], g: 80, min: 60, max: 120}
+      - {pick: [eggs], g: 55, min: 0, max: 55, opt: true}
+      - {pick: [cream_cheese], g: 40, min: 0, max: 50, opt: true}
+      - {pick: [tomato], g: 60, min: 0, max: 120, opt: true}
+  - id: b_egg_shawarma
+    meal: breakfast
+    title: "Яичная шаурма с курицей"
+    src: margo
+    quick: true
+    how: "Обжарь курицу. Взбей яйца с солью, испеки блин на медленном огне и заверни в него курицу, огурец и йогурт."
+    alt:
+      - {slots: [1], title: "Яичная шаурма с птицей"}
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [chicken, turkey, "@poultry"], g: 70, min: 50, max: 120}
+      - {pick: [greek, yogurt], g: 30, min: 0, max: 50, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 50, min: 0, max: 150, opt: true}
+      - {pick: [bread, lavash], g: 30, min: 0, max: 80, opt: true, add: true}
+  - id: b_banana_pancakes
+    meal: breakfast
+    title: "Банановые оладьи"
+    src: margo
+    quick: true
+    how: "Разомни банан, смешай с яйцом и овсяной мукой, жарь на сухой сковороде по 1–2 минуты с каждой стороны."
+    items:
+      - {pick: [banana], g: 60, min: 50, max: 120}
+      - {pick: [eggs], g: 55, min: 55, max: 110}
+      - {pick: [oats], g: 30, min: 20, max: 50}
+      - {pick: [greek, yogurt, cottage], g: 80, min: 0, max: 150, opt: true, add: true}
+  - id: b_toast_cheese_egg
+    meal: breakfast
+    title: "Тост с сыром и яйцом в духовке"
+    src: margo
+    quick: true
+    how: "Вырежи центр ломтика хлеба, влей туда яйцо, посыпь сыром и запекай 8 минут."
+    items:
+      - {pick: [bread], g: 35, min: 35, max: 80}
+      - {pick: [eggs], g: 55, min: 55, max: 110}
+      - {pick: [light_cheese, cheese], g: 20, min: 0, max: 30, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: b_green_oat_pancake
+    meal: breakfast
+    title: "Зелёный овсяноблин с рыбкой"
+    src: margo
+    quick: true
+    how: "Овсянку, яйцо, шпинат и молоко пробей блендером и испеки блин под крышкой. Начинка — творожный сыр, огурец и рыба."
+    items:
+      - {pick: [oats], g: 50, min: 30, max: 70}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [milk], g: 100, min: 50, max: 150, opt: true}
+      - {pick: [spinach], g: 30, min: 0, max: 50, opt: true}
+      - {pick: [salted_fish], g: 50, min: 40, max: 90}
+      - {pick: [cream_cheese, cottage], g: 15, min: 0, max: 30, opt: true}
+      - {pick: [cucumber], g: 80, min: 0, max: 150, opt: true}
+  - id: b_fried_oats
+    meal: breakfast
+    title: "Жареная овсянка с яйцом и сыром"
+    src: margo
+    quick: true
+    how: "Обжарь хлопья на сухой сковороде минуту, вбей яйцо, посыпь тёртым сыром и ветчиной и мешай, пока яйцо не схватится."
+    items:
+      - {pick: [oats], g: 50, min: 30, max: 70}
+      - {pick: [eggs], g: 55, min: 55, max: 110}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [turkey_ham], g: 20, min: 0, max: 40, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: b_shakshuka
+    meal: breakfast
+    title: "Шакшука с фетой"
+    src: margo
+    quick: true
+    how: "Обжарь лук и перец, добавь томаты и томатную пасту, потуши несколько минут. Сделай 2 лунки, вбей яйца, посыпь фетой и готовь под крышкой минуту."
+    alt:
+      - {slots: [4], title: "Шакшука с сыром"}
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [canned_tomatoes, tomato], g: 200, min: 150, max: 250}
+      - {pick: [pepper], g: 100, min: 0, max: 150, opt: true}
+      - {pick: [onion], g: 40, min: 0, max: 50, opt: true}
+      - {pick: [feta, light_cheese, cheese], g: 40, min: 0, max: 50, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+      - {pick: [bread], g: 40, min: 0, max: 80, opt: true, add: true}
+  - id: b_tuna_sandwich
+    meal: breakfast
+    title: "Сэндвич с тунцом"
+    src: margo
+    quick: true
+    how: "Тунец смешай с греческим йогуртом и специями, выложи на подсушенный хлеб, сверху огурец, зелень и яйцо, накрой вторым ломтиком."
+    items:
+      - {pick: [bread], g: 70, min: 50, max: 100}
+      - {pick: [tuna], g: 80, min: 60, max: 120}
+      - {pick: [greek, yogurt], g: 15, min: 0, max: 30, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 80, min: 0, max: 150, opt: true}
+      - {pick: [eggs], g: 55, min: 0, max: 55, opt: true}
+  - id: b_trout_eggs
+    meal: breakfast
+    title: "Хлеб с форелью и яичница"
+    src: margo
+    quick: true
+    how: "Подсуши хлеб, пожарь яйца и собери тарелку: руккола, хлеб с рыбой, яичница."
+    items:
+      - {pick: [bread], g: 60, min: 40, max: 90}
+      - {pick: [salted_fish], g: 100, min: 60, max: 120}
+      - {pick: [eggs], g: 110, min: 55, max: 110}
+      - {pick: [lettuce, spinach], g: 30, min: 0, max: 80, opt: true}
+  - id: b_trout_avocado
+    meal: breakfast
+    title: "Хлеб с форелью и авокадо"
+    src: margo
+    quick: true
+    how: "Подсуши хлеб, намажь размятым авокадо, сверху выложи рыбу и рукколу."
+    items:
+      - {pick: [bread], g: 60, min: 40, max: 100}
+      - {pick: [salted_fish], g: 100, min: 60, max: 120}
+      - {pick: [avocado], g: 40, min: 30, max: 60}
+      - {pick: [lettuce, spinach], g: 30, min: 0, max: 80, opt: true}
+  - id: b_omelet_trout
+    meal: breakfast
+    title: "Омлет с авокадо и рыбой"
+    src: margo
+    quick: true
+    how: "Взбей яйца с молоком и солью, испеки тонкий омлет на капле масла. На половину выложи авокадо и рыбу, накрой второй половиной."
+    items:
+      - {pick: [eggs], g: 110, min: 110, max: 165}
+      - {pick: [milk], g: 30, min: 0, max: 50, opt: true}
+      - {pick: [salted_fish], g: 100, min: 60, max: 120}
+      - {pick: [avocado], g: 40, min: 0, max: 60, opt: true}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 70, opt: true, add: true}
+  - id: b_cottage_yogurt
+    meal: breakfast
+    title: "Творог с йогуртом и ягодами"
+    src: margo
+    quick: true
+    how: "Соедини творог и йогурт, перемешай до кремовой текстуры и добавь ягоды."
+    items:
+      - {pick: [cottage], g: 150, min: 100, max: 250}
+      - {pick: [yogurt, greek], g: 150, min: 0, max: 200, opt: true}
+      - {pick: ["@berries", banana, "@fruit"], g: 50, min: 0, max: 150, opt: true}
+      - {pick: [crispbread, bread, oats], g: 20, min: 0, max: 50, opt: true, add: true}
+  - id: b_overnight
+    meal: breakfast
+    title: "Ленивая овсянка в баночке (с вечера)"
+    quick: true
+    batch: true
+    how: "С вечера смешай хлопья с йогуртом или кефиром, добавь фрукты и убери в холодильник."
+    items:
+      - {pick: [oats], g: 40, min: 30, max: 80}
+      - {pick: [greek, yogurt, kefir], g: 150, min: 100, max: 250}
+      - {pick: ["@berries", banana, apple, pear], g: 100, min: 60, max: 150, opt: true, add: true}
+      - {pick: [nuts, peanut_butter], g: 10, min: 0, max: 20, opt: true, add: true}
+  - id: b_syrniki
+    meal: breakfast
+    title: "Сырники (на сковороде или в духовке)"
+    batch: true
+    how: "Смешай творог, яйцо и овсяную муку, сформируй сырники и обжарь на капле масла или запеки 20 минут при 180°."
+    items:
+      - {pick: [cottage], g: 180, min: 150, max: 250}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [oats], g: 30, min: 20, max: 40}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true, add: true}
+      - {pick: [greek, yogurt, "@berries"], g: 60, min: 0, max: 100, opt: true, add: true}
+  - id: b_buckwheat_egg
+    meal: breakfast
+    title: "Гречка с яйцом и овощами"
+    quick: true
+    batch: true
+    items:
+      - {pick: [buckwheat], g: 50, min: 30, max: 80}
+      - {pick: [eggs], g: 110, min: 55, max: 165}
+      - {pick: [cucumber, tomato, lettuce, pepper], g: 100, min: 50, max: 150, opt: true}
+  - id: b_greek_bowl
+    meal: breakfast
+    title: "Йогурт-боул с фруктами и орехами"
+    quick: true
+    items:
+      - {pick: [greek, yogurt], g: 200, min: 150, max: 300}
+      - {pick: [banana, apple, pear, "@berries", "@fruit"], g: 120, min: 60, max: 150, opt: true}
+      - {pick: [oats], g: 20, min: 0, max: 40, opt: true}
+      - {pick: [nuts, peanut_butter], g: 15, min: 0, max: 20, opt: true}
+  - id: b_tofu_scramble
+    meal: breakfast
+    title: "Скрэмбл из тофу с овощами"
+    quick: true
+    items:
+      - {pick: [tofu], g: 150, min: 100, max: 250}
+      - {pick: [tomato, pepper, zucchini, broccoli, veg_mix, spinach, mushrooms], g: 120, min: 80, max: 200, opt: true}
+      - {pick: [bread, lavash], g: 50, min: 0, max: 80, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+
+  # ===================== ОБЕДЫ =====================
+  - id: l_chicken_buckwheat
+    meal: lunch
+    title: "Куриная грудка с гречкой и овощами"
+    src: margo
+    batch: true
+    how: "Гречку промой и свари (1:2, 15–20 минут). Курицу обжарь на сухой сковороде или запеки 15 минут при 180°. Овощи нарежь и заправь маслом."
+    alt:
+      - {slots: [0, 1], title: "Птица с крупой и овощами"}
+    items:
+      - {pick: [chicken, turkey, "@poultry"], g: 120, min: 100, max: 200}
+      - {pick: [buckwheat, bulgur, rice, "@grain"], g: 50, min: 30, max: 110}
+      - {pick: [cucumber, lettuce, pepper], g: 100, min: 0, max: 200, opt: true}
+      - {pick: [tomato, pepper, carrot], g: 120, min: 0, max: 200, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_turkey_meatballs
+    meal: lunch
+    title: "Тефтели из индейки с рисом и томатным соусом"
+    src: margo
+    batch: true
+    how: "Фарш смешай с мелко нарезанным луком и сформируй тефтели. Потуши 15 минут в воде с томатной пастой. Подавай с рисом и ложкой йогурта."
+    alt:
+      - {slots: [0, 1], title: "Тефтели из птицы с гарниром и томатным соусом"}
+    items:
+      - {pick: [turkey, chicken, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [rice, buckwheat, bulgur, "@grain"], g: 50, min: 30, max: 100}
+      - {pick: [onion], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [tomato_paste], g: 20, min: 0, max: 20, opt: true}
+      - {pick: [yogurt, greek], g: 30, min: 0, max: 50, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_tuna_pasta
+    meal: lunch
+    title: "Паста с тунцом"
+    src: margo
+    quick: true
+    how: "Отвари макароны. Тунец разомни с йогуртом и лимонным соком и смешай с пастой."
+    items:
+      - {pick: [pasta], g: 60, min: 40, max: 100}
+      - {pick: [tuna], g: 100, min: 80, max: 150}
+      - {pick: [yogurt, greek], g: 40, min: 0, max: 60, opt: true}
+      - {pick: [cucumber, tomato, lettuce, spinach], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_soy_chicken_noodles
+    meal: lunch
+    title: "Курица в соевом соусе с рисовой лапшой"
+    src: margo
+    quick: true
+    how: "Курицу нарежь и обжарь, добавь овощи и соевый соус. Лапшу залей кипятком на 5–7 минут и смешай с курицей."
+    alt:
+      - {slots: [0, 1], title: "Птица в соевом соусе с лапшой или рисом"}
+    items:
+      - {pick: [chicken, turkey, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [rice_noodles, rice, pasta], g: 60, min: 30, max: 100}
+      - {pick: [veg_mix, broccoli, pepper, carrot, zucchini], g: 150, min: 0, max: 250, opt: true}
+      - {pick: [soy_sauce], g: 10, min: 0, max: 15, opt: true}
+  - id: l_fish_mash
+    meal: lunch
+    title: "Запечённая рыба с картофельным пюре"
+    src: margo
+    how: "Рыбу запеки 15 минут при 180°. Картофель свари и разомни в пюре с молоком."
+    alt:
+      - {slots: [1], title: "Запечённая рыба с пюре из батата"}
+    items:
+      - {pick: [white_fish, "@fish"], g: 150, min: 120, max: 220}
+      - {pick: ["@potato"], g: 200, min: 120, max: 350}
+      - {pick: [milk], g: 30, min: 0, max: 50, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+      - {pick: [cucumber, tomato, broccoli, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_turkey_stew
+    meal: lunch
+    title: "Овощное рагу с индейкой"
+    src: margo
+    batch: true
+    how: "Обжарь индейку, добавь кабачок, перец и морковь и туши 15–20 минут со специями."
+    alt:
+      - {slots: [0], title: "Овощное рагу с птицей"}
+    items:
+      - {pick: [turkey, chicken, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [zucchini, veg_mix, eggplant, cauliflower, broccoli], g: 150, min: 100, max: 250}
+      - {pick: [pepper], g: 120, min: 0, max: 150, opt: true}
+      - {pick: [carrot], g: 80, min: 0, max: 100, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+      - {pick: ["@potato", buckwheat, rice, bulgur, bread], g: 100, min: 0, max: 250, opt: true, add: true}
+  - id: l_chicken_lavash
+    meal: lunch
+    title: "Лаваш-ролл с курицей"
+    src: margo
+    quick: true
+    how: "Курицу обжарь, смешай с капустой и йогуртом, заверни в лаваш и прогрей на сковороде."
+    alt:
+      - {slots: [1], title: "Лаваш-ролл с птицей"}
+    items:
+      - {pick: [lavash], g: 30, min: 30, max: 80}
+      - {pick: [chicken, turkey, "@poultry"], g: 100, min: 80, max: 180}
+      - {pick: [greek, yogurt], g: 30, min: 0, max: 50, opt: true}
+      - {pick: [cabbage, cucumber, lettuce, tomato], g: 80, min: 0, max: 150, opt: true}
+  - id: l_turkey_bulgur
+    meal: lunch
+    title: "Индейка с булгуром и брокколи"
+    src: margo
+    batch: true
+    how: "Булгур промой и свари (1:2, 15 минут). Индейку обжарь или потуши, брокколи приготовь на пару 5–7 минут. Булгур смешай с маслом."
+    alt:
+      - {slots: [0, 1, 2], title: "Птица с крупой и овощами"}
+    items:
+      - {pick: [turkey, chicken, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [bulgur, buckwheat, rice, "@grain"], g: 50, min: 30, max: 100}
+      - {pick: [broccoli, cauliflower, green_beans, veg_mix], g: 150, min: 0, max: 250, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_creamy_pasta
+    meal: lunch
+    title: "Паста с курицей в сливочном соусе (ПП)"
+    src: margo
+    quick: true
+    how: "Курицу обжарь, добавь йогурт и чеснок и прогрей минуту (не кипяти). Смешай с отваренной пастой."
+    alt:
+      - {slots: [1], title: "Паста с птицей в сливочном соусе (ПП)"}
+    items:
+      - {pick: [pasta], g: 60, min: 40, max: 100}
+      - {pick: [chicken, turkey, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [yogurt, greek], g: 60, min: 0, max: 80, opt: true}
+      - {pick: [broccoli, spinach, tomato, zucchini], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_beef_potato
+    meal: lunch
+    title: "Тушёная говядина с картофелем"
+    src: margo
+    batch: true
+    how: "Говядину нарежь и туши 40–60 минут до мягкости, добавь картофель и морковь и туши ещё 20 минут."
+    alt:
+      - {slots: [0], title: "Тушёное мясо с картофелем"}
+    items:
+      - {pick: ["@meat"], g: 130, min: 100, max: 180}
+      - {pick: ["@potato"], g: 200, min: 100, max: 350}
+      - {pick: [carrot], g: 80, min: 0, max: 100, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+      - {pick: [cucumber, tomato, lettuce, cabbage], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_shrimp_rice
+    meal: lunch
+    title: "Креветки с рисом и шпинатом"
+    src: margo
+    quick: true
+    how: "Отвари рис. Креветки прогрей на сковороде, добавь шпинат и соевый соус и подавай с рисом."
+    alt:
+      - {slots: [1, 2], title: "Креветки с крупой и овощами"}
+    items:
+      - {pick: [shrimp], g: 150, min: 100, max: 220}
+      - {pick: [rice, "@grain"], g: 50, min: 30, max: 100}
+      - {pick: [spinach, broccoli, veg_mix, lettuce], g: 100, min: 0, max: 200, opt: true}
+      - {pick: [soy_sauce], g: 10, min: 0, max: 15, opt: true}
+  - id: l_chicken_lentils
+    meal: lunch
+    title: "Курица с чечевицей"
+    src: margo
+    batch: true
+    how: "Чечевицу промой и свари (20–25 минут). Курицу обжарь или запеки, смешай с чечевицей, томатной пастой и водой и прогрей."
+    alt:
+      - {slots: [0], title: "Индейка с чечевицей"}
+    items:
+      - {pick: [chicken, turkey, "@poultry"], g: 120, min: 100, max: 180}
+      - {pick: [lentils], g: 60, min: 30, max: 90}
+      - {pick: [tomato_paste], g: 20, min: 0, max: 20, opt: true}
+      - {pick: [cucumber, tomato, lettuce, pepper], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: l_olivier
+    meal: lunch
+    title: "ПП-оливье с тунцом"
+    src: margo
+    batch: true
+    how: "Отвари картофель и яйцо, нарежь всё вместе с огурцом, добавь тунец и заправь йогуртом."
+    items:
+      - {pick: [potato], g: 150, min: 100, max: 250}
+      - {pick: [tuna], g: 100, min: 80, max: 150}
+      - {pick: [eggs], g: 55, min: 0, max: 110, opt: true}
+      - {pick: [cucumber], g: 100, min: 0, max: 150, opt: true}
+      - {pick: [yogurt, greek], g: 50, min: 0, max: 70, opt: true}
+  - id: l_turkey_lavash
+    meal: lunch
+    title: "Лаваш с индейкой и сыром"
+    src: margo
+    quick: true
+    how: "Обжарь индейку, заверни в лаваш с сыром и помидором и поджарь на сухой сковороде."
+    alt:
+      - {slots: [1], title: "Лаваш с птицей и сыром"}
+    items:
+      - {pick: [lavash], g: 30, min: 30, max: 80}
+      - {pick: [turkey, chicken, "@poultry"], g: 100, min: 80, max: 180}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [tomato, cucumber, lettuce], g: 80, min: 0, max: 150, opt: true}
+  - id: l_pasta
+    meal: lunch
+    title: "Паста с белком и овощами"
+    quick: true
+    items:
+      - {pick: [pasta], g: 70, min: 40, max: 100}
+      - {pick: ["@poultry", shrimp, "@meat"], g: 130, min: 100, max: 200}
+      - {pick: [zucchini, pepper, broccoli, veg_mix, tomato, mushrooms], g: 150, min: 100, max: 250, opt: true}
+      - {pick: ["@cheese"], g: 15, min: 0, max: 25, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_beef_grain
+    meal: lunch
+    title: "Мясо с крупой и овощами"
+    batch: true
+    items:
+      - {pick: ["@meat"], g: 130, min: 100, max: 180}
+      - {pick: [buckwheat, bulgur, rice, "@grain"], g: 70, min: 30, max: 110}
+      - {pick: [cucumber, tomato, pepper, carrot, zucchini, cabbage, lettuce], g: 200, min: 100, max: 300, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_stirfry
+    meal: lunch
+    title: "Стир-фрай: крупа, белок и овощи на сковороде"
+    batch: true
+    items:
+      - {pick: [rice, "@grain"], g: 70, min: 30, max: 110}
+      - {pick: ["@poultry", shrimp, tofu, "@meat"], g: 140, min: 100, max: 220}
+      - {pick: [veg_mix, pepper, broccoli, carrot, zucchini, cabbage], g: 200, min: 100, max: 300, opt: true}
+      - {pick: ["@oil"], g: 10, min: 0, max: 10, opt: true}
+  - id: l_warm_salad
+    meal: lunch
+    title: "Тёплый салат с белком"
+    quick: true
+    items:
+      - {pick: ["@poultry", shrimp, "@fish"], g: 140, min: 100, max: 200}
+      - {pick: [lettuce, cucumber, tomato, pepper, spinach], g: 200, min: 120, max: 300}
+      - {pick: [avocado], g: 50, min: 0, max: 70, opt: true}
+      - {pick: [bread], g: 50, min: 0, max: 100, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_baked_potato_chicken
+    meal: lunch
+    title: "Птица, запечённая с картофелем или бататом"
+    batch: true
+    items:
+      - {pick: ["@potato"], g: 250, min: 120, max: 400}
+      - {pick: ["@poultry"], g: 150, min: 100, max: 220}
+      - {pick: [broccoli, zucchini, pepper, carrot, veg_mix, tomato, cucumber], g: 150, min: 100, max: 250, opt: true}
+      - {pick: ["@oil"], g: 10, min: 0, max: 10, opt: true}
+  - id: l_fish_rice
+    meal: lunch
+    title: "Рыба с крупой и овощами"
+    batch: true
+    items:
+      - {pick: ["@fish"], g: 160, min: 120, max: 230}
+      - {pick: [rice, bulgur, buckwheat, "@grain"], g: 70, min: 30, max: 110}
+      - {pick: [broccoli, veg_mix, zucchini, green_beans, pepper], g: 200, min: 100, max: 300, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: l_tofu_grain
+    meal: lunch
+    title: "Тофу с крупой и овощами"
+    batch: true
+    items:
+      - {pick: [tofu], g: 180, min: 120, max: 250}
+      - {pick: [buckwheat, rice, bulgur, "@grain"], g: 70, min: 30, max: 110}
+      - {pick: [veg_mix, broccoli, pepper, zucchini, carrot, cabbage], g: 200, min: 100, max: 300, opt: true}
+      - {pick: ["@oil"], g: 10, min: 0, max: 10, opt: true}
+  - id: l_egg_bowl
+    meal: lunch
+    title: "Боул: крупа, яйца и овощи"
+    quick: true
+    items:
+      - {pick: [buckwheat, bulgur, rice, "@grain"], g: 60, min: 30, max: 100}
+      - {pick: [eggs], g: 110, min: 55, max: 165}
+      - {pick: [cucumber, tomato, lettuce, pepper, broccoli, veg_mix], g: 150, min: 80, max: 250, opt: true}
+      - {pick: ["@cheese", avocado], g: 20, min: 0, max: 40, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+
+  # ===================== УЖИНЫ =====================
+  - id: d_fish_steam
+    meal: dinner
+    title: "Рыба на пару с овощами и картофелем"
+    src: margo
+    how: "Картофель отвари или приготовь на пару 15–20 минут, рыбу — на пару 10–12 минут, брокколи — 5–7 минут. Масло добавь перед подачей."
+    alt:
+      - {slots: [0, 1, 2], title: "Рыба на пару с гарниром и овощами"}
+    items:
+      - {pick: [white_fish, "@fish"], g: 150, min: 120, max: 220}
+      - {pick: ["@potato", rice, buckwheat, bulgur], g: 180, min: 0, max: 300, opt: true}
+      - {pick: [broccoli, cauliflower, green_beans, zucchini, veg_mix], g: 150, min: 0, max: 250, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: d_chicken_zucchini
+    meal: dinner
+    title: "Тушёная курица с кабачком"
+    src: margo
+    batch: true
+    how: "Курицу нарежь и слегка обжарь на масле, добавь кабачок и лук, посоли и туши под крышкой 20 минут."
+    alt:
+      - {slots: [0, 1], title: "Тушёная птица с овощами"}
+    items:
+      - {pick: [chicken, chicken_thigh, turkey], g: 150, min: 120, max: 220}
+      - {pick: [zucchini, eggplant, pepper, veg_mix], g: 200, min: 150, max: 300}
+      - {pick: [onion], g: 50, min: 0, max: 50, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+      - {pick: [buckwheat, rice, bulgur, "@potato", bread], g: 60, min: 0, max: 200, opt: true, add: true}
+  - id: d_white_omelet
+    meal: dinner
+    title: "Белковый омлет с сыром и салатом"
+    src: margo
+    quick: true
+    how: "Белки взбей и вылей на сковороду с каплей масла, добавь тёртый сыр. Подавай с овощным салатом."
+    items:
+      - {pick: [egg_white], g: 120, min: 90, max: 240}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: [cucumber, tomato, lettuce, spinach], g: 200, min: 100, max: 300, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 80, opt: true, add: true}
+  - id: d_tuna_quinoa
+    meal: dinner
+    title: "Тунец с киноа и огурцом"
+    src: margo
+    quick: true
+    how: "Киноа промой и свари 12–15 минут, смешай с тунцом и огурцом и заправь йогуртом."
+    alt:
+      - {slots: [1], title: "Тунец с крупой и огурцом"}
+    items:
+      - {pick: [tuna], g: 120, min: 80, max: 160}
+      - {pick: [quinoa, bulgur, rice, buckwheat, couscous], g: 50, min: 30, max: 90}
+      - {pick: [cucumber, tomato, lettuce], g: 150, min: 0, max: 250, opt: true}
+      - {pick: [yogurt, greek], g: 40, min: 0, max: 60, opt: true}
+  - id: d_salmon_asparagus
+    meal: dinner
+    title: "Запечённый лосось с овощами"
+    src: margo
+    how: "Лосось посоли и сбрызни лимоном, рядом выложи спаржу (или другие овощи), сбрызни маслом и запекай 15–18 минут при 190°."
+    items:
+      - {pick: [red_fish], g: 140, min: 100, max: 200}
+      - {pick: [asparagus, green_beans, broccoli, zucchini, cauliflower], g: 200, min: 150, max: 300}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+      - {pick: ["@potato", rice, bread], g: 100, min: 0, max: 250, opt: true, add: true}
+  - id: d_bean_stew
+    meal: dinner
+    title: "Овощное рагу с фасолью"
+    src: margo
+    quick: true
+    how: "Овощи нарежь и туши 15 минут, добавь фасоль и прогрей."
+    items:
+      - {pick: [beans], g: 150, min: 100, max: 250}
+      - {pick: [zucchini, eggplant, veg_mix, cauliflower], g: 200, min: 100, max: 300}
+      - {pick: [pepper], g: 100, min: 0, max: 150, opt: true}
+      - {pick: [canned_tomatoes, tomato], g: 150, min: 0, max: 200, opt: true}
+      - {pick: [bread], g: 30, min: 0, max: 70, opt: true, add: true}
+  - id: d_chicken_lavash_cheese
+    meal: dinner
+    title: "Лаваш-ролл с курицей и творожным сыром"
+    src: margo
+    quick: true
+    how: "Курицу обжарь или запеки. На лаваш намажь творожный сыр, выложи огурец и курицу, сверни и поджарь на сухой сковороде."
+    alt:
+      - {slots: [1], title: "Лаваш-ролл с птицей и творожным сыром"}
+    items:
+      - {pick: [lavash], g: 30, min: 30, max: 70}
+      - {pick: [chicken, turkey, "@poultry"], g: 100, min: 80, max: 180}
+      - {pick: [cream_cheese], g: 40, min: 0, max: 50, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 80, min: 0, max: 150, opt: true}
+  - id: d_turkey_yogurt
+    meal: dinner
+    title: "Индейка в сливочно-йогуртовом соусе с гречкой"
+    src: margo
+    how: "Гречку свари 15–18 минут. Индейку нарежь и обжарь на капле масла 3–4 минуты, добавь йогурт и чеснок и туши 5–7 минут до густого соуса."
+    alt:
+      - {slots: [0, 1], title: "Птица в сливочно-йогуртовом соусе с крупой"}
+    items:
+      - {pick: [turkey, chicken, "@poultry"], g: 150, min: 120, max: 220}
+      - {pick: [buckwheat, bulgur, rice, "@grain"], g: 50, min: 0, max: 90}
+      - {pick: [yogurt, greek], g: 70, min: 0, max: 100, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 5, opt: true}
+      - {pick: [cucumber, tomato, lettuce], g: 100, min: 0, max: 200, opt: true, add: true}
+  - id: d_shrimp_avocado
+    meal: dinner
+    title: "Тёплый салат с креветками и авокадо"
+    src: margo
+    quick: true
+    how: "Креветки обжарь 2–3 минуты на сухой сковороде. Смешай салат, черри и авокадо, добавь креветки и заправь маслом и лимоном."
+    alt:
+      - {slots: [0], title: "Тёплый салат с рыбой и авокадо"}
+    items:
+      - {pick: [shrimp, "@fish"], g: 150, min: 100, max: 220}
+      - {pick: [lettuce, spinach], g: 80, min: 0, max: 150, opt: true}
+      - {pick: [tomato], g: 100, min: 0, max: 150, opt: true}
+      - {pick: [avocado], g: 70, min: 0, max: 80, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+      - {pick: [bread, crispbread], g: 30, min: 0, max: 70, opt: true, add: true}
+  - id: d_chicken_cauli
+    meal: dinner
+    title: "Запеканка из курицы и цветной капусты"
+    src: margo
+    batch: true
+    how: "Цветную капусту отвари 7–8 минут, курицу мелко нарежь. Смешай с яйцом и йогуртом, выложи в форму, сверху сыр, и запекай 20–25 минут при 180°."
+    alt:
+      - {slots: [0, 1], title: "Запеканка из птицы и капусты"}
+    items:
+      - {pick: [chicken, turkey, "@poultry"], g: 150, min: 120, max: 220}
+      - {pick: [cauliflower, broccoli], g: 250, min: 150, max: 300}
+      - {pick: [eggs], g: 55, min: 0, max: 55, opt: true}
+      - {pick: [yogurt, greek], g: 50, min: 0, max: 70, opt: true}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+      - {pick: ["@potato", bread, rice], g: 80, min: 0, max: 200, opt: true, add: true}
+  - id: d_chicken_veg
+    meal: dinner
+    title: "Птица с овощами гриль"
+    quick: true
+    batch: true
+    items:
+      - {pick: ["@poultry"], g: 160, min: 120, max: 230}
+      - {pick: [zucchini, pepper, broccoli, veg_mix, tomato, eggplant, mushrooms], g: 250, min: 150, max: 350}
+      - {pick: [buckwheat, rice, bulgur, "@grain"], g: 40, min: 0, max: 80, opt: true}
+      - {pick: ["@oil"], g: 10, min: 0, max: 10, opt: true}
+  - id: d_omelet
+    meal: dinner
+    title: "Большой омлет с овощами"
+    quick: true
+    items:
+      - {pick: [eggs], g: 165, min: 110, max: 220}
+      - {pick: [tomato, pepper, zucchini, broccoli, veg_mix, mushrooms, lettuce, spinach], g: 200, min: 100, max: 300}
+      - {pick: ["@cheese"], g: 20, min: 0, max: 30, opt: true}
+      - {pick: [bread], g: 30, min: 0, max: 70, opt: true}
+  - id: d_casserole
+    meal: dinner
+    title: "Творожная запеканка"
+    batch: true
+    how: "Смешай творог, яйцо и овсяную муку, добавь ягоды и запекай 25–30 минут при 180°."
+    items:
+      - {pick: [cottage], g: 200, min: 150, max: 280}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [oats], g: 25, min: 15, max: 40}
+      - {pick: ["@berries", apple, banana, pear], g: 80, min: 0, max: 120, opt: true, add: true}
+      - {pick: [greek, yogurt], g: 50, min: 0, max: 100, opt: true, add: true}
+  - id: d_beef_veg
+    meal: dinner
+    title: "Тушёное мясо с овощами"
+    batch: true
+    items:
+      - {pick: ["@meat"], g: 140, min: 100, max: 180}
+      - {pick: [zucchini, pepper, carrot, veg_mix, tomato, broccoli, cabbage, eggplant], g: 250, min: 150, max: 350}
+      - {pick: ["@potato", buckwheat, rice, bulgur, "@grain"], g: 150, min: 0, max: 250, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: d_turkey_zucchini
+    meal: dinner
+    title: "Птица с тушёными овощами и крупой"
+    batch: true
+    items:
+      - {pick: ["@poultry"], g: 150, min: 120, max: 220}
+      - {pick: [zucchini, pepper, veg_mix, eggplant, broccoli], g: 250, min: 150, max: 350}
+      - {pick: [bulgur, buckwheat, rice, "@grain"], g: 40, min: 0, max: 80, opt: true}
+      - {pick: ["@oil"], g: 5, min: 0, max: 10, opt: true}
+  - id: d_tofu_veg
+    meal: dinner
+    title: "Тофу с овощами на сковороде"
+    quick: true
+    items:
+      - {pick: [tofu], g: 200, min: 150, max: 280}
+      - {pick: [veg_mix, pepper, broccoli, zucchini, mushrooms, cabbage], g: 250, min: 150, max: 350}
+      - {pick: [rice, buckwheat, "@grain"], g: 40, min: 0, max: 80, opt: true}
+      - {pick: ["@oil"], g: 10, min: 0, max: 10, opt: true}
+  - id: d_red_fish_potato
+    meal: dinner
+    title: "Красная рыба с гарниром и овощами"
+    items:
+      - {pick: [red_fish], g: 140, min: 100, max: 200}
+      - {pick: ["@potato", rice, bulgur, buckwheat, "@grain"], g: 200, min: 0, max: 300, opt: true}
+      - {pick: [cucumber, tomato, lettuce, broccoli, green_beans, pepper], g: 150, min: 100, max: 250, opt: true}
+  - id: d_light_cottage
+    meal: dinner
+    title: "Лёгкий ужин: творог, овощи и хлеб"
+    quick: true
+    items:
+      - {pick: [cottage], g: 180, min: 120, max: 250}
+      - {pick: [cucumber, tomato, lettuce, pepper], g: 200, min: 100, max: 300}
+      - {pick: [bread, crispbread], g: 40, min: 0, max: 80, opt: true}
+
+  # ===================== ПЕРЕКУСЫ =====================
+  - id: s_greek_bowl
+    meal: snack
+    title: "Йогурт-боул с ягодами и орехами"
+    src: margo
+    quick: true
+    how: "В миску выложи йогурт, добавь ягоды и орехи — перемешай или оставь слоями."
+    items:
+      - {pick: [greek, yogurt], g: 130, min: 100, max: 250}
+      - {pick: ["@berries", "@fruit"], g: 70, min: 0, max: 150, opt: true}
+      - {pick: [nuts], g: 10, min: 0, max: 20, opt: true}
+  - id: s_lavash_envelope
+    meal: snack
+    title: "Лаваш-конвертик с творогом и сыром"
+    src: margo
+    quick: true
+    how: "Выложи на лаваш творог и сыр, сложи конвертом и обжарь на сухой сковороде по 2–3 минуты до хруста."
+    items:
+      - {pick: [lavash], g: 40, min: 30, max: 60}
+      - {pick: [cottage], g: 80, min: 60, max: 130}
+      - {pick: [light_cheese, cheese], g: 30, min: 0, max: 40, opt: true}
+  - id: s_tuna_snack
+    meal: snack
+    title: "Белковый перекус с тунцом"
+    src: margo
+    quick: true
+    how: "Смешай тунец, кукурузу, мелко нарезанные варёные яйца и творожный сыр, посоли и намажь на хлебец."
+    items:
+      - {pick: [tuna], g: 100, min: 60, max: 120}
+      - {pick: [corn], g: 100, min: 0, max: 100, opt: true}
+      - {pick: [eggs], g: 55, min: 0, max: 110, opt: true}
+      - {pick: [cream_cheese], g: 30, min: 0, max: 30, opt: true}
+      - {pick: [crispbread, bread], g: 10, min: 10, max: 40}
+  - id: s_avocado_egg_toast
+    meal: snack
+    title: "Хрустящие тосты с яйцом и авокадо"
+    src: margo
+    quick: true
+    how: "Поджарь тосты. Варёное яйцо измельчи, смешай с размятым авокадо и творожным сыром и намажь на тосты."
+    items:
+      - {pick: [bread], g: 60, min: 30, max: 70}
+      - {pick: [eggs], g: 55, min: 55, max: 55}
+      - {pick: [avocado], g: 60, min: 30, max: 60}
+      - {pick: [cream_cheese], g: 30, min: 0, max: 30, opt: true}
+  - id: s_cottage_yogurt
+    meal: snack
+    title: "Творог с йогуртом и ягодами"
+    src: margo
+    quick: true
+    how: "Соедини творог и йогурт, перемешай до кремовой текстуры и добавь ягоды."
+    items:
+      - {pick: [cottage], g: 120, min: 80, max: 200}
+      - {pick: [yogurt, greek], g: 100, min: 0, max: 150, opt: true}
+      - {pick: ["@berries", "@fruit"], g: 50, min: 0, max: 120, opt: true}
+  - id: s_yogurt_crisp
+    meal: snack
+    title: "Йогурт с хлебцами"
+    src: margo
+    quick: true
+    how: "Хлебцы подай отдельно или поломай в йогурт перед едой."
+    items:
+      - {pick: [yogurt, greek], g: 200, min: 150, max: 250}
+      - {pick: [crispbread], g: 20, min: 10, max: 30}
+  - id: s_fruit_nuts
+    meal: snack
+    title: "Фрукт и орехи"
+    quick: true
+    items:
+      - {pick: ["@fruit", "@berries"], g: 150, min: 100, max: 250}
+      - {pick: [nuts], g: 20, min: 10, max: 30}
+  - id: s_kefir_fruit
+    meal: snack
+    title: "Кефир и фрукт"
+    quick: true
+    items:
+      - {pick: [kefir], g: 250, min: 150, max: 300}
+      - {pick: ["@fruit", "@berries"], g: 100, min: 0, max: 150, opt: true}
+  - id: s_bread_cheese
+    meal: snack
+    title: "Хлеб с сыром и огурцом"
+    quick: true
+    items:
+      - {pick: [bread, crispbread], g: 40, min: 20, max: 70}
+      - {pick: [light_cheese, cheese], g: 25, min: 15, max: 35}
+      - {pick: [cucumber, tomato, lettuce, pepper], g: 80, min: 0, max: 120, opt: true}
+  - id: s_cottage_fruit
+    meal: snack
+    title: "Творог с фруктом"
+    quick: true
+    items:
+      - {pick: [cottage], g: 120, min: 80, max: 200}
+      - {pick: ["@fruit", "@berries"], g: 100, min: 0, max: 150, opt: true}
+  - id: s_apple_pb
+    meal: snack
+    title: "Яблоко или банан с арахисовой пастой"
+    quick: true
+    items:
+      - {pick: [apple, banana, pear], g: 150, min: 100, max: 200}
+      - {pick: [peanut_butter], g: 15, min: 10, max: 25}
+  - id: s_eggs_veg
+    meal: snack
+    title: "Варёные яйца и овощи"
+    quick: true
+    items:
+      - {pick: [eggs], g: 110, min: 55, max: 110}
+      - {pick: [cucumber, tomato, pepper, carrot, lettuce], g: 150, min: 80, max: 200, opt: true}
