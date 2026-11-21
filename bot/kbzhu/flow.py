@@ -657,7 +657,7 @@ class Kbzhu:
         if relaxed:
             await self.send(uid, self.t("relaxed"))
         await self.send(uid, self.t("menu_done"))
-        if first_menu:
+        if True:  # книга «ПП-завтраки» — с каждым новым меню
             await self.send_gifts(uid)
         await self.offer_collections(uid)
         if first_menu:
