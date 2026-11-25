@@ -659,7 +659,6 @@ class Kbzhu:
         await self.send(uid, self.t("menu_done"))
         if True:  # книга «ПП-завтраки» — с каждым новым меню
             await self.send_gifts(uid)
-        await self.offer_collections(uid)
         if first_menu:
             await self.schedule_follow(uid)
 
@@ -769,7 +768,9 @@ class Kbzhu:
         later = []
         for i, g in enumerate(gifts):
             if int(g.get("day", 0)) == 0:
-                await self.send(uid, render(g.get("text", ""), **await self.app._user_vars(uid)).strip())
+                text = render(g.get("text") or "", **await self.app._user_vars(uid)).strip()
+                if text:
+                    await self.send(uid, text)
                 if g.get("file") and not await self.app.send_file(uid, g["file"], protect=False):
                     await self.app.alert(f"⚠️ Не загружен файл <code>{html.escape(g['file'])}</code> — отправь его боту "
                                          f"с подписью <code>/file {html.escape(g['file'])}</code>", about_uid=uid)
@@ -842,4 +843,3 @@ class Kbzhu:
             return
         await self.app.db.kv_set("kbzhu_weekly", str(int(time.time())))
         await self.app.alert("📊 Сводка за неделю\n\n" + await self.stats_text(int(time.time()) - 7 * 86400))
-
