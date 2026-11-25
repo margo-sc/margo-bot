@@ -238,8 +238,8 @@ async def test_full_flow_norm_menu_discount(env):
     assert len(days) == 7
     assert not any("Творог" in t or "Молоко" in t for t in days)   # без лактозы
     assert any("Шоколад" in t for t in days)
-    assert any("3 сборника" in t and "499" in t for t in out)          # сразу после меню — сборники
-    assert "a:product:recepty" in callbacks(s.last_markup(CLIENT))
+    assert any("4 книги моих рецептов" in t for t in out)               # сразу после меню — книги в подарок
+    assert not any("499" in t for t in out)                              # сборники больше не продаются
     assert not any("скидка 15%" in t for t in out)                     # личная работа — только на 3-й день
     prof = await app.db.kbzhu_get(CLIENT)
     assert prof["menu"] and prof["menu_at"]
@@ -387,47 +387,35 @@ async def test_admin_stats_and_export(env):
     assert "Аня" in doc.document.data.decode("utf-8")
 
 
-async def test_gift_breakfast_book_with_menu(env, tmp_path):
+async def test_gift_four_books_with_menu(env, tmp_path):
     app, s, dp, bot = env
     from aiogram.methods import SendDocument
-    (tmp_path / "files" / "pp-zavtraki.pdf").write_bytes(b"%PDF-1.4 test")
+    for f in ("pp-zavtraki.pdf", "pp-obedy.pdf", "pp-uzhiny.pdf", "pp-perekusy.pdf"):
+        (tmp_path / "files" / f).write_bytes(b"%PDF-1.4 test")
     await app.db.touch_user(CLIENT, "anya", "Аня", None)
     await app.kbzhu.send_gifts(CLIENT)
     docs = [c for c in s.calls if isinstance(c, SendDocument) and c.chat_id == CLIENT]
-    assert len(docs) == 1 and any("ПП-завтраки" in t for t in texts(s))
+    assert len(docs) == 4
+    assert sum("4 книги" in t for t in texts(s)) == 1       # одно сообщение, потом только файлы
 
 
-async def test_recipe_collections_for_sale(env, tmp_path):
+async def test_recipe_links_lead_to_calculation(env):
     app, s, dp, bot = env
-    from aiogram.methods import SendDocument
-    # в каталоге первой строкой — 4 сборника за 499
-    await go(dp, bot, upd_callback(CLIENT, "a:screen:catalog"))
-    first = s.last_markup(CLIENT).inline_keyboard[0][0]
-    assert "499" in first.text and first.callback_data == "a:product:recepty"
     await go(dp, bot, upd_message(CLIENT, "/start insta_recepty"))
-    assert "31 рецепт" in texts(s)[-1] and "a:pay:recepty" in callbacks(s.last_markup(CLIENT))
-    # оплата → 4 файла
-    for f in ("pp-obedy.pdf", "pp-uzhiny.pdf", "pp-perekusy.pdf"):
-        (tmp_path / "files" / f).write_bytes(b"%PDF-1.4 test")
-    order = await app.db.create_order(CLIENT, "recepty", 499)
-    await app.db.mark_paid(order["id"])
-    await app.on_paid(await app.db.order_by_id(order["id"]))
-    docs = [c for c in s.calls if isinstance(c, SendDocument) and c.chat_id == CLIENT]
-    assert len(docs) == 3 and all(d.protect_content for d in docs)
-    # по отдельности
-    await go(dp, bot, upd_callback(CLIENT, "a:screen:recepty_singles"))
-    assert "a:product:recepty_perekusy" in callbacks(s.last_markup(CLIENT))
-    assert "a:product:recepty_deserty" not in callbacks(s.last_markup(CLIENT))
+    assert "посчитаю твою личную норму" in "\n".join(texts(s))
+    assert "recepty" not in app.content.products
 
 
-async def test_day2_offers_collections(env):
+async def test_day2_asks_about_recipes(env):
     app, s, dp, bot = env
     await app.db.touch_user(CLIENT, "anya", "Аня", None)
     await app.kbzhu.schedule_follow(CLIENT)
     await app.db.conn.execute("UPDATE jobs SET run_at=0 WHERE user_id=?", (CLIENT,))
     for job in await app.db.due_jobs():
         await app.run_job(job)
-    assert any("3 сборника" in t and "499" in t for t in texts(s))
+    assert any("книг рецептов" in t for t in texts(s))
+    assert not any("499" in t for t in texts(s))
+
 
 
 async def test_gift_comes_with_every_new_menu(env, tmp_path):
@@ -438,4 +426,4 @@ async def test_gift_comes_with_every_new_menu(env, tmp_path):
     await app.db.kbzhu_save(CLIENT, prof)
     st = __import__("bot.kbzhu.flow", fromlist=["KState"]).KState(step="cooking", selected=["chicken", "buckwheat"])
     await app.kbzhu.make_menu(CLIENT, st)
-    assert any("ПП-завтраки" in t for t in texts(s))
+    assert any("4 книги" in t for t in texts(s))
